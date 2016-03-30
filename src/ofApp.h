@@ -4,6 +4,11 @@
 #include "ofxGui.h"
 #include "controller.h"
 
+// OSC
+#include "ofxOsc.h"
+#define PORT 3000 // listen on port 3000
+#define NUM_MSG_STRINGS 20
+
 class ofApp : public ofBaseApp{
 
 	public:
@@ -101,4 +106,17 @@ class ofApp : public ofBaseApp{
         Controller mController;
     
         ofVboMesh billboard;
+    
+        //OSC
+        ofxOscReceiver receiver;
+        void checkOSC();
+    	long oscPushTime;
+    
+        int filter; // which filter -  0.none 1.coordinates 2.vision 3.soundXray 4.composition
+        bool filterCoordinates;
+    
+        bool filterVisible;
+    
+        bool filterXraySound;
+        bool filterComposition;
 };

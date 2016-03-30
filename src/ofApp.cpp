@@ -8,7 +8,6 @@ void ofApp::setup(){
     ofBackground(30, 30, 30);
     // GL_REPEAT for texture wrap only works with NON-ARB textures //
     ofDisableArbTex();
-    
     ofEnableAlphaBlending();
     
     icoSphere.set(1, 4);
@@ -80,16 +79,25 @@ void ofApp::setup(){
     mTimeElapsed = 0.0f;
     mTimeMulti = 60.0f;
     mTimer = 0.0f;
+    
+    // OSC
+    // listen on the given port
+    cout << "listening for osc messages on port " << PORT << "\n";
+    receiver.setup(PORT);
+    filter = 0;
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-     //plane.set( solarRadius*30, solarRadius*30 );
+    
+    // OSC
+    checkOSC();
+    
+    //plane.set( solarRadius*30, solarRadius*30 );
     //ofVec3f haha = camera.getOrientationEuler();
     //float haha = camera.getAspectRatio();
     //bool haha = camera.getForceAspectRatio();
     //float haha = camera.getFov();
-    
     //cout << haha << "\n";
     
     // ROOM
@@ -99,7 +107,6 @@ void ofApp::update(){
     //mStar.update( mRoom.getTimeDelta() );
     
     // CONTROLLER
-    
     if( getTick() ){
         // ADD GLOWS
         //int numGlowsToSpawn = 4;
@@ -125,50 +132,43 @@ void ofApp::update(){
 void ofApp::draw(){
     
     //ofEnableBlendMode(OF_BLENDMODE_ADD);
-    
-    
     //ofEnableDepthTest();
     
-    camera.begin();
-    //ofDrawAxis(1000);
     
     
-    // PLANE
-    if (showGradient) {
-        drawGradient();
-    }
-    // SPHERE
-    if (showSphere) {
-        drawSphere();
-    }
-    // CORONA
-    if (showCorona) {
-        drawCorona();
-    }
-    // NEBULAS
-    if (showNebulas){
-        drawNebulas();
-    }
+    // VISION FILTER BEGIN
+        if (filter == 2) {
+            camera.begin();
+            //ofDrawAxis(1000);
+            // GRADIENT PLANE
+            if (showGradient) {
+                drawGradient();
+            }
+            // SUN SPHERE
+            if (showSphere) {
+                drawSphere();
+            }
+            // SUN CORONA
+            if (showCorona) {
+                drawCorona();
+            }
+            // SUN NEBULAS
+            if (showNebulas){
+                drawNebulas();
+            }
+            camera.end();
+            gui.draw();
+        }
+    // VISION FILTER END
     
-    ofDisableDepthTest();
     
-    camera.end();
-   
     
-    gui.draw();
+    //ofDisableDepthTest();
     
+    // DEBUG - FPS
     ofSetColor(225);
     ofFill();
     ofDrawBitmapString(ofToString(ofGetFrameRate()), ofPoint(ofGetWindowWidth() - 70, 20));
-    //texture.getTexture().bind();
-    //shader.setUniform1f( "spectrumTex", 1);
-    //shader.setUniform1f("radius", 200.0f);
-    //shader.setUniform1f("color", 0.9f);
-    //shader.setUniformTexture("envMap", envTex, 0);
-    //shader.setUniformMatrix4f("viewTranspose", ofMatrix4x4::getTransposedOf(camera.getModelViewMatrix()));
-    //shader.setUniformMatrix4f("normalMatrix", ofMatrix4x4::getTransposedOf(camera.getModelViewMatrix().getInverse()));
-    //shader.setUniform1f("color", 0.75f);
-   
 }
 
 //--------------------------------------------------------------
@@ -449,5 +449,104 @@ void ofApp::updateTime()
     if( mTimer > 1.0f ){
         mTick = true;
         mTimer = 0.0f;
+    }
+}
+
+void ofApp::checkOSC() {
+    
+    while(receiver.hasWaitingMessages()){    // check for waiting messages
+        ofxOscMessage m;                     // get the next message
+        receiver.getNextMessage(m);
+        
+        // this part happens twice, because we receive ON and then OFF straight after
+        if(m.getAddress() == "/1/push1"){
+            //cout << m.getArgAsFloat(0) << "\n";
+            if (m.getArgAsFloat(0) == 1 ) {
+                filterCoordinates = !filterCoordinates;
+                //cout << filterCoordinates << "\n";
+                filterVisible =         false;
+                filterXraySound =       false;
+                filterComposition =     false;
+            }
+        }
+        
+        // this part happens twice, because we receive ON and then OFF straight after
+        if(m.getAddress() == "/1/push2"){
+            //cout << m.getArgAsFloat(0) << "\n";
+            if (m.getArgAsFloat(0) == 1 ) {
+                filterVisible = !filterVisible;
+                //cout << filterVisible << "\n";
+                filterCoordinates =     false;
+                filterXraySound =       false;
+                filterComposition =     false;
+            }
+        }
+        
+        // this part happens twice, because we receive ON and then OFF straight after
+        if(m.getAddress() == "/1/push3"){
+            //cout << m.getArgAsFloat(0) << "\n";
+            if (m.getArgAsFloat(0) == 1 ) {
+                filterXraySound = !filterXraySound;
+                //cout << filterXraySound << "\n";
+                filterCoordinates =     false;
+                filterVisible =         false;
+                filterComposition =     false;
+            }
+        }
+        
+        // this part happens twice, because we receive ON and then OFF straight after
+        if(m.getAddress() == "/1/push4"){
+            //cout << m.getArgAsFloat(0) << "\n";
+            if (m.getArgAsFloat(0) == 1 ) {
+                filterComposition = !filterComposition;
+                //cout << filterComposition << "\n";
+                filterCoordinates =     false;
+                filterVisible =         false;
+                filterXraySound =       false;
+            }
+        }
+        
+        if (m.getArgAsFloat(0) != 0 ) {
+        cout << "COORD: " << filterCoordinates << " | VIS: " << filterVisible << " | SOUND: " << filterXraySound << " | COMPOSITION: " << filterComposition << "\n";
+            if (filterCoordinates)      { filter = 1; }
+            else if (filterVisible)      { filter = 2; }
+            else if (filterXraySound)   { filter = 3; }
+            else if (filterComposition) { filter = 4; }
+            else                        { filter = 0; }
+            cout << "Filter: " << filter << "\n";
+        }
+        /*
+           else {
+            // unrecognized message: display on the bottom of the screen
+            string msg_string;
+            msg_string = m.getAddress();
+            msg_string += ": ";
+            for(int i = 0; i < m.getNumArgs(); i++){
+                // get the argument type
+                msg_string += m.getArgTypeName(i);
+                msg_string += ":";
+                // display the argument - make sure we get the right type
+                if(m.getArgType(i) == OFXOSC_TYPE_INT32){
+                    msg_string += ofToString(m.getArgAsInt32(i));
+                }
+                else if(m.getArgType(i) == OFXOSC_TYPE_FLOAT){
+                    msg_string += ofToString(m.getArgAsFloat(i));
+                }
+                else if(m.getArgType(i) == OFXOSC_TYPE_STRING){
+                    msg_string += m.getArgAsString(i);
+                }
+                else{
+                    msg_string += "unknown";
+                }
+            }
+         
+            // add to the list of strings to display
+            //msg_strings[current_msg_string] = msg_string;
+            //timers[current_msg_string] = ofGetElapsedTimef() + 5.0f;
+            //current_msg_string = (current_msg_string + 1) % NUM_MSG_STRINGS;
+            // clear the next line
+            //msg_strings[current_msg_string] = "";
+        }*/
+        
     }
 }
