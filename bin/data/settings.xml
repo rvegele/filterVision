@@ -1,0 +1,8 @@
+<group>
+	<radius>150</radius>
+	<color>0.92, 0.82, 0.34, 1</color>
+	<clamp_Min>0</clamp_Min>
+	<clamp_Max>0.85</clamp_Max>
+	<dot_mult>0.75</dot_mult>
+	<coronaR>4.15</coronaR>
+</group>
