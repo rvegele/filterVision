@@ -6,6 +6,7 @@ varying vec2 texcoord;
 uniform float radius;
 uniform float nebulaRadius;
 uniform float randomas;
+uniform float pointSize;
 
 varying vec4 vVertex;
 
@@ -14,8 +15,8 @@ void main()
     
     //vVertex = vec4(gl_Vertex);
     vVertex = gl_Vertex;
+    vVertex.xyz *= radius;
     
-    //vVertex.xyz *= radius;
     //vVertex.xyz *= nebulaRadius;
     
     //gl_Position = gl_ModelViewProjectionMatrix * vVertex;
@@ -25,7 +26,7 @@ void main()
     
     // does not work
     gl_Position = ftransform();
-    gl_PointSize = nebulaRadius;
+    gl_PointSize = pointSize;
     
     texcoord = vec2 (gl_TextureMatrix[0] * gl_MultiTexCoord0);
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "ofMain.h"
-#include "Nebula.h"
+#include "nebula.h"
+#include "glow.h"
 
 #include <vector>
 
@@ -44,12 +45,13 @@ public:
     
     Controller();
     void update( float dt );
+    
     //void updateDusts( float dt );
-    //void drawGlows( ci::gl::GlslProg *shader, const ci::Vec3f &right, const ci::Vec3f &up );
-    void drawNebulas( ofShader *shader/*, const ofVec3f &right, const ofVec3f &up*/ );
+    void drawGlows( ofShader *shader/*, const ofVec3f &right, const ci::Vec3f &up */);
+    void drawNebulas( ofShader *shader/*, const ofVec3f &right, const ofVec3f &up*/);
     //void drawDusts();
     
-    //void addGlows( const Star &star, float power, int amt );
+    void addGlows( float solarRadius,/*const Star &star, float power, */int amt );
     void addNebulas( float solarRadius,/*const Star &star,*/ int amt );
     //void addDusts( const Star &star, int amt );
     
@@ -57,7 +59,7 @@ public:
     //void addCMNebulas( const ci::Vec3f &starPos, float starRadius, float radiusMulti, int amt );
     //void addCMGlows( const ci::Vec3f &starPos, float starRadius, int amt );
     
-    //std::vector<Glow>	mGlows;
+    std::vector<Glow>	mGlows;
     std::vector<Nebula>	mNebulas;
     //std::vector<Dust>	mDusts;
     //int					mTotalDustVerts;

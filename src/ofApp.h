@@ -9,6 +9,8 @@
 #define PORT 3000 // listen on port 3000
 #define NUM_MSG_STRINGS 20
 
+#define DEBUG
+
 class ofApp : public ofBaseApp{
 
 	public:
@@ -81,6 +83,11 @@ class ofApp : public ofBaseApp{
         ofImage textureNebula;
         ofImage textureSmallGrid;
     
+        bool showGlow;
+        void drawGlow();
+        ofShader glowShader;
+        ofImage textureGlow;
+
         bool blending; // additive blending mode
     
         ofShader coronaShader;
@@ -119,4 +126,14 @@ class ofApp : public ofBaseApp{
     
         bool filterXraySound;
         bool filterComposition;
+    
+        ofTrueTypeFont	gothamBold;
+        ofTrueTypeFont	gothamLight;
+    
+        ofSoundPlayer  lightCurveAudio;
+    
+    string xSTR;
+    string ySTR;
+    string zSTR;
+    
 };

@@ -12,15 +12,15 @@ Controller::Controller() {
 
 void Controller::update( float dt )
 {
-    // GLOWS
-//    for( vector<Glow>::iterator it = mGlows.begin(); it != mGlows.end(); ){
-//        if( it->mIsDead ){
-//            it = mGlows.erase( it );
-//        } else {
-//            it->update( dt );
-//            ++ it;
-//        }
-//    }
+     //GLOWS
+    for( vector<Glow>::iterator it = mGlows.begin(); it != mGlows.end(); ){
+        if( it->mIsDead ){
+            it = mGlows.erase( it );
+        } else {
+            it->update( dt );
+            ++ it;
+        }
+    }
     
     // NEBULAS
     for( vector<Nebula>::iterator it = mNebulas.begin(); it != mNebulas.end(); ){
@@ -63,21 +63,30 @@ void Controller::updateDusts( float dt )
         vIndex++;
     }
 }
-
-void Controller::drawGlows( gl::GlslProg *shader, const Vec3f &right, const Vec3f &up )
+*/
+void Controller::drawGlows( ofShader *shader/*, const Vec3f &right, const Vec3f &up*/ )
 {
     for( vector<Glow>::iterator it = mGlows.begin(); it != mGlows.end(); ++it ){
-        shader->uniform( "alpha", it->mAgePer );
-        it->draw( right, up );
+        shader->setUniform1f("alpha", it->mAgePer);
+        shader->setUniform1f("angle", it->mRot);
+        shader->setUniform1f("pointSize", it->mRadius);
+        //shader->uniform( "alpha", it->mAgePer );
+        //glPushMatrix();
+        //glTranslatef(100, 0, 0);
+        //glRotatef(it->mRot, 1, 2, 1);
+        //glTranslatef(-1, 0, 0);
+        it->draw( /*right, up*/ );
+        //glPopMatrix();
     }
 }
-*/
+
 void Controller::drawNebulas( ofShader *shader/*, const ofVec3f &right, const ofVec3f &up*/ )
 {
     for( vector<Nebula>::iterator it = mNebulas.begin(); it != mNebulas.end(); ++it ){
         //ofShader->uniform( "alpha", it->mAgePer );
         shader->setUniform1f("alpha", it->mAgePer);
         shader->setUniform1f("angle", it->mRot);
+        shader->setUniform1f("pointSize", it->mRadius);//glPointSize(mRadius);
         //cout <<it->mAgePer<<"\n";
         it->draw( /*right, up*/ );
     }
@@ -98,33 +107,33 @@ void Controller::drawDusts()
     }
     gl::color( ColorA( 1.0f, 1.0f, 1.0f, 1.0f ) );
 }
-
-void Controller::addGlows( const Star &star, float power, int amt )
+*/
+void Controller::addGlows( float solarRadius, int amt )
 {
     for( int i=0; i<amt; i++ ){
-        float radius	= Rand::randFloat( 15.0f, 20.0f ) * star.mRadiusMulti;
-        Vec3f dir		= Rand::randVec3f();
-        Vec3f pos		= star.mPos + dir * ( star.mRadius - radius * 0.25 );
-        Vec3f vel		= dir * Rand::randFloat( 1.3f, 2.0f );
+        float radius	= ofRandom( 15.0f, 20.0f ) * 5;//star.mRadiusMulti;
+        ofVec3f dir		= randVec3f();
+        ofVec3f pos		= ofVec3f(0,0,0) + dir * ( solarRadius - radius * 0.25f );
+        ofVec3f vel		= dir * ofRandom( 1.3f, 2.0f );
         
-        float lifespan	= Rand::randFloat( 15.0f, 30.0f ) * star.mRadiusMulti;
+        float lifespan  = ofRandom( 15.0f, 30.0f ) * 1.72;
         
-        mGlows.push_back( Glow( pos, vel, radius + ( 1.0f - power ) * 35.0f, lifespan ) );
+        mGlows.push_back( Glow( pos, vel, radius, lifespan ) );
     }
 }
-*/
+
 void Controller::addNebulas( float solarRadius,/*const Star &star,*/ int amt ) {
     
     for( int i=0; i<amt; i++ ){
         float radius		= ofRandom( 15.0f, 25.0f ) * 5;
         ofVec3f dir			= randVec3f();//Rand::randVec3f();
-        ofVec3f pos			= 0 + dir * ( solarRadius - solarRadius * 0.25f );
+        ofVec3f pos			= ofVec3f(0,0,0) + dir * ( solarRadius - radius * 0.25f );
         //ofVec3f pos		= /*star.mPos + */ dir * ( solarRadius - 1 * 0.25f );
         ofVec3f vel			= dir * ofRandom( 0.2f, 1.0f ) * 3;
         
         //		if( Rand::randFloat() < 0.05f ) vel = dir * Rand::randFloat( 1.2f, 1.75f ) * star.mRadiusMulti;
         //		float radius		= star.mRadius * Rand::randFloat( 2.25f, 3.0f );
-        float lifespan		= ofRandom( 35.0f, 55.0f ) * 1.2;
+        float lifespan		= ofRandom( 35.0f, 55.0f ) * 1.72;
         mNebulas.push_back( Nebula( pos, vel, radius, lifespan ) );
     }
 }

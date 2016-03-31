@@ -23,6 +23,7 @@
 		879A251454401BC0B6E4F238 /* OscTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9BFFBBF4CC43DEE890B3C3E /* OscTypes.cpp */; };
 		8D0B9E731CAB199500A9DC22 /* nebula.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D0B9E711CAB199500A9DC22 /* nebula.cpp */; };
 		8D0B9E761CAB1AC100A9DC22 /* controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D0B9E741CAB1AC100A9DC22 /* controller.cpp */; };
+		8DB723101CAC5BF1000AAD08 /* glow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DB7230E1CAC5BF1000AAD08 /* glow.cpp */; };
 		8F5205AEF8861EF234F0651A /* ofxOscSender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 81967292BFC87A0144BD32C6 /* ofxOscSender.cpp */; };
 		ADE367465D2A8EBAD4C7A8D9 /* IpEndpointName.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ADD194746185E2DA11468377 /* IpEndpointName.cpp */; };
 		B266578FC55D23BFEBC042E7 /* ofxGuiGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECF8674C7975F1063C5E30CA /* ofxGuiGroup.cpp */; };
@@ -96,6 +97,8 @@
 		8D0B9E741CAB1AC100A9DC22 /* controller.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = controller.cpp; sourceTree = "<group>"; };
 		8D0B9E751CAB1AC100A9DC22 /* controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = controller.h; sourceTree = "<group>"; };
 		8D96FE741CA042DB009DA011 /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = bin/data; sourceTree = "<group>"; };
+		8DB7230E1CAC5BF1000AAD08 /* glow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glow.cpp; sourceTree = "<group>"; };
+		8DB7230F1CAC5BF1000AAD08 /* glow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glow.h; sourceTree = "<group>"; };
 		907C5B5E104864A2D3A25745 /* ofxToggle.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = ofxToggle.cpp; path = ../../../addons/ofxGui/src/ofxToggle.cpp; sourceTree = SOURCE_ROOT; };
 		9604B925D32EE39065747725 /* ofxBaseGui.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = ofxBaseGui.cpp; path = ../../../addons/ofxGui/src/ofxBaseGui.cpp; sourceTree = SOURCE_ROOT; };
 		9BF3AA0D4FAA89D0F8A0E545 /* OscReceivedElements.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = OscReceivedElements.cpp; path = ../../../addons/ofxOsc/libs/oscpack/src/osc/OscReceivedElements.cpp; sourceTree = SOURCE_ROOT; };
@@ -290,6 +293,8 @@
 				E4B69E1F0A3A1BDC003C02F2 /* ofApp.h */,
 				8D0B9E741CAB1AC100A9DC22 /* controller.cpp */,
 				8D0B9E751CAB1AC100A9DC22 /* controller.h */,
+				8DB7230E1CAC5BF1000AAD08 /* glow.cpp */,
+				8DB7230F1CAC5BF1000AAD08 /* glow.h */,
 				8D0B9E711CAB199500A9DC22 /* nebula.cpp */,
 				8D0B9E721CAB199500A9DC22 /* nebula.h */,
 			);
@@ -428,6 +433,7 @@
 				1CD33E884D9E3358252E82A1 /* ofxToggle.cpp in Sources */,
 				72A929D3561B8232A182ABFC /* ofxOscBundle.cpp in Sources */,
 				5864AD82E20F15536D054EA3 /* ofxOscMessage.cpp in Sources */,
+				8DB723101CAC5BF1000AAD08 /* glow.cpp in Sources */,
 				4ADB88E2FB52E76A471065DE /* ofxOscParameterSync.cpp in Sources */,
 				640279EE111671BD026CB013 /* ofxOscReceiver.cpp in Sources */,
 				8F5205AEF8861EF234F0651A /* ofxOscSender.cpp in Sources */,

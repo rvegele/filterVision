@@ -53,8 +53,7 @@ void Nebula::update( float dt )
     mRadiusDest += mRadiusMulti * dt;
     mRadiusMulti -= mRadiusMulti * 0.03f * dt;
     mRadius -= ( mRadius - mRadiusDest ) * 0.1f * dt;
-    
-    //billboard.setNormal(0, ofVec3f(mRadius,0,0));
+    //billboard.setNormal(0, ofVec3f(100,0,0));
     
     mAge += dt;
     mAgePer = 1.0f - mAge/mLifespan;//sin( ( mAge/mLifespan ) * M_PI );
@@ -65,10 +64,11 @@ void Nebula::update( float dt )
 }
 
 void Nebula::draw( /*const ofVec3f &right, const ofVec3f &up*/ ) {
-    ofPushMatrix();
-    ofRotate(mRot);
+    //ofPushMatrix();
+    //ofRotate(mRot);
+    //billboard.setNormal(0, ofVec3f(.5, 1, 0.54));
     billboard.draw();
     //ofDrawPlane(mPos.x, mPos.y, mPos.z, mRadius, mRadius);
     //gl::drawBillboard( mPos, ofVec2f( mRadius, mRadius ), mRot, right, up );
-    ofPopMatrix();
+    //ofPopMatrix();
 }
