@@ -15,7 +15,7 @@ void main()
     
     //vVertex = vec4(gl_Vertex);
     vVertex = gl_Vertex;
-    vVertex.xyz *= radius;
+    //vVertex.xyz *= radius;
     
     //vVertex.xyz *= nebulaRadius;
     

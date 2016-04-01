@@ -136,4 +136,10 @@ class ofApp : public ofBaseApp{
     string ySTR;
     string zSTR;
     
+    void visionFilterPart();
+    
+    ofImage composition01Image;
+    ofImage composition02Image;
+    int compositionDepth;
+    ofImage xraySound;
 };

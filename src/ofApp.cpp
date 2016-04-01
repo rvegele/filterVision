@@ -10,7 +10,7 @@ void ofApp::setup(){
     ofDisableArbTex();
     ofEnableAlphaBlending();
     
-    icoSphere.set(1, 4);
+    icoSphere.set(0.5, 4);
     icoSphere.setPosition(0, 0, 0);
     
     plane.set( 1, 1 );
@@ -47,9 +47,20 @@ void ofApp::setup(){
     textureSmallGrid.load("smallGrid.png");
     textureGlow.load("glow.png");
     
+    composition01Image.load("helium-00.png");
+    composition01Image.resize(composition01Image.getWidth()*0.5, composition01Image.getHeight()*0.5);
+    composition02Image.load("helium-01.png");
+    composition02Image.resize(composition02Image.getWidth()*0.5, composition02Image.getHeight()*0.5);
+    
+    xraySound.load("xraySound.png");
+    xraySound.resize(xraySound.getWidth()*1.5, xraySound.getHeight()*1.5);
+    
+    
+    compositionDepth = 0;
+    
     gui.setup(); // most of the time you don't need a name
     
-    gui.add(solarRadius.setup("radius", 150, 1, 200));
+    gui.add(solarRadius.setup("radius", 300.25, 1, 400));
     
     gui.add(color.setup("color",
                         ofFloatColor(0.92, 0.82, 0.34),
@@ -57,12 +68,12 @@ void ofApp::setup(){
                         ofFloatColor(1.0,1.0)));
     
     gui.add(clmpMin.setup("clamp Min", 0.0, 0.0, 1.0));
-    gui.add(clmpMax.setup("clamp Max", 0.585, 0.0, 1.0)); // 0.85
-    gui.add(dtt.setup("dot mult", 0.495, 0.0, 1.0));      //  0.75
+    gui.add(clmpMax.setup("clamp Max", 0.75, 0.0, 1.0)); // 0.585
+    gui.add(dtt.setup("dot mult", 0.200, 0.0, 1.0));      //  0.495
     
-    gui.add(coronaRadius.setup("coronaR", 3.975, 1, 10));
-    gui.add(specSpalva.setup("specSplv", 0.45, 0, 1.0));
-    gui.add(nebulaRadius.setup("nebulaR", 100, 0, 200));
+    gui.add(coronaRadius.setup("coronaR", 1.95, 1, 10));
+    gui.add(specSpalva.setup("specSplv", 0.55, 0, 1.0));
+    gui.add(nebulaRadius.setup("nebulaR", 1, 0, 5));
     
     gui.add(randomas.setup("randomas", 134, 0, 400));
     //gui.add(circleResolution.setup("circle res", 5, 3, 90));
@@ -136,13 +147,13 @@ void ofApp::update(){
     if( getTick() ){
         // ADD GLOWS
         int numGlowsToSpawn = 3;
-        mController.addGlows( solarRadius, numGlowsToSpawn );
+        mController.addGlows( solarRadius*nebulaRadius*0.5, numGlowsToSpawn );
         
         // ADD NEBULAS
         int numNebulasToSpawn = 4;
         //if( mRoom.isPowerOn() ) numNebulasToSpawn = (int)( 8 );//* mStar.mRadiusMulti );
         
-        mController.addNebulas( solarRadius, /*mStar,*/ numNebulasToSpawn );
+        mController.addNebulas( solarRadius*nebulaRadius*0.5, /*mStar,*/ numNebulasToSpawn );
         
         //!!!!!!!!!!!!!!!!!!! REMEMBER TO TURN ON OTHER THINGS IN CONTROLLER UPDATE
         // ADD DUSTS
@@ -160,69 +171,19 @@ void ofApp::draw(){
     
 #ifdef DEBUG
     
-        ofClear ( 0, 0, 0 );
-        
-        glDisable(GL_CULL_FACE);
-        ofBackgroundGradient(ofColor(30, 30, 30), ofColor(0, 0, 0), OF_GRADIENT_CIRCULAR);
-        glEnable(GL_CULL_FACE);
-        
-        camera.begin();
-        //ofDrawAxis(1000);
-        // GRADIENT PLANE
-        if (showGradient) {
-            drawGradient();
-        }
-        // SUN SPHERE
-        if (showSphere) {
-            //glEnable( GL_TEXTURE_2D );
-            glEnable(GL_DEPTH_TEST);
-            
-            glDepthMask(true);
-            
-            drawSphere();
-            
-            //gl::disableDepthWrite();
-            //glDepthMask(false);
-            glDisable(GL_DEPTH_TEST);
-            
-        }
-        //ofEnableBlendMode(OF_BLENDMODE_ADD);
-        //glEnable(GL_BLEND);
-        
-        ofEnableBlendMode(OF_BLENDMODE_ADD);
-        // SUN CORONA
-        if (showCorona) {
-            drawCorona();
-        }
-        // SUN NEBULAS
-        if (showNebulas){
-            drawNebulas();
-        }
-        // SUN GLOW
-        if (showGlow){
-            drawGlow();
-        }
-    ofDisableBlendMode();
-    ofEnableBlendMode(OF_BLENDMODE_ALPHA);
- //   ofEnableBlendMode(OF_BLENDMODE_ADD);
-    
-            //glDisable(GL_BLEND);
-        camera.end();
-        gui.draw();
-        
-
+    visionFilterPart();
     // DEBUG - FPS
     ofSetColor(225);
     //ofFill();
     ofDrawBitmapString(ofToString(ofGetFrameRate()), ofPoint(ofGetWindowWidth() - 70, 20));
-#else
     
+#else
     //ofBackgroundGradient(ofColor::green, ofColor::gray);
     //ofEnableBlendMode(OF_BLENDMODE_ADD);
     //ofEnableDepthTest();
     
-    
-    // FILTER BLANK SCREEN BEGIN
+    // --------------------------------------- //
+    // filter BLANK begins
         if (filter == 0) {
             glDisable(GL_CULL_FACE);
             ofBackgroundGradient(ofColor(30, 30, 30), ofColor(0, 0, 0), OF_GRADIENT_CIRCULAR);
@@ -234,11 +195,10 @@ void ofApp::draw(){
             ofDrawBitmapString("Use OSC 1-2-3-4 for filter demo", 50, 50);
             */
         }
-    // FILTER BLANK SCREEN END
+    // filter BLANK ends
     
     // --------------------------------------- //
-    
-    // FILTER COORDINATES BEGIN
+    // filter COORDINATES begins
         if (filter == 1) {
             //ofBackground(255, 0, 0);
             glDisable(GL_CULL_FACE);
@@ -286,62 +246,46 @@ void ofApp::draw(){
             gothamBold.drawString(step2, ofGetWindowWidth()/2-rect.width/2, ofGetWindowHeight()/2+((rect.height / 2) + 200));
 
         }
-    // FILTER COORDINATES END
+    // filter COORDINATES ends
     
     // --------------------------------------- //
-    
-    // FILTER VISION BEGIN
+    // filter VISION begins
         if (filter == 2) {
-            ofClear ( 0, 0, 0 );
-            
-            glDisable(GL_CULL_FACE);
-            ofBackgroundGradient(ofColor(30, 30, 30), ofColor(0, 0, 0), OF_GRADIENT_CIRCULAR);
-            glEnable(GL_CULL_FACE);
-            
-            camera.begin();
-            //ofDrawAxis(1000);
-            // GRADIENT PLANE
-            if (showGradient) {
-                drawGradient();
-            }
-            // SUN SPHERE
-            if (showSphere) {
-                drawSphere();
-            }
-            // SUN CORONA
-            if (showCorona) {
-                drawCorona();
-            }
-            // SUN NEBULAS
-            if (showNebulas){
-                drawNebulas();
-            }
-            
-            camera.end();
-            gui.draw();
-            
+            visionFilterPart();
         }
-    // FILTER VISION END
+    // filter VISION end
     
     // --------------------------------------- //
-    
-    // FILTER XRAY SOUND BEGIN
+    // filter XRAY SOUND begins
     if (filter == 3) {
         glDisable(GL_CULL_FACE);
         ofBackgroundGradient(ofColor(30, 30, 30), ofColor(0, 0, 0), OF_GRADIENT_CIRCULAR);
         glEnable(GL_CULL_FACE);
+        xraySound.draw((ofGetWindowWidth()/2)-(xraySound.getWidth()/2), (ofGetWindowHeight()/2)-(xraySound.getHeight()/2));
+        
         if (lightCurveAudio.isPlaying()) {
             
         } else { lightCurveAudio.play(); }
     }
-    // FILTER XRAY SOUND END
+    if (filter != 3 ){ lightCurveAudio.stop(); }
+    
+    // filter XRAY SOUND ends
     
     // --------------------------------------- //
-    
-    // FILTER COMPOSITION BEGIN
+    // filter COMPOSITION begins
     if (filter == 4) {
+        glDisable(GL_CULL_FACE);
+        ofBackgroundGradient(ofColor(30, 30, 30), ofColor(0, 0, 0), OF_GRADIENT_CIRCULAR);
+        glEnable(GL_CULL_FACE);
+        
+        if (compositionDepth == 1 ) {
+        composition01Image.draw((ofGetWindowWidth()/2)-(composition01Image.getWidth()/2), (ofGetWindowHeight()/2)-(composition01Image.getHeight()/2));
+        } else  {
+            composition02Image.draw((ofGetWindowWidth()/2)-(composition02Image.getWidth()/2), (ofGetWindowHeight()/2)-(composition02Image.getHeight()/2));
+            
+        }
     }
-    // FILTER COMPOSITION END
+    // filter COMPOSITION ends
     
     // --------------------------------------- //
     
@@ -353,7 +297,6 @@ void ofApp::draw(){
     ofDrawBitmapString(ofToString(ofGetFrameRate()), ofPoint(ofGetWindowWidth() - 70, 20));
     
 #endif
-
 }
 
 //--------------------------------------------------------------
@@ -370,6 +313,9 @@ void ofApp::keyReleased(int key){
         case '3':	showCorona = !showCorona; break;
         case '4':	showNebulas = !showNebulas; break;
         case '5':	showGlow = !showGlow; break;
+            
+        case '6':	showGlow = true; showGradient = true; showCorona = true; showNebulas = true; showSphere = true; break;
+            
         
         case 'b':	blending = !blending; break;
         default: break;
@@ -526,7 +472,7 @@ void ofApp::drawCorona()
     
         ofSetColor(1.0, 1.0, 1.0, 1.0);
     
-        float radiuss = solarRadius * coronaRadius;
+        //float radiuss = solarRadius * coronaRadius;
         //float colorr = gui.getParameter().color;
         //float starColor = 0.9;
         //textureCorona.getTexture().bind(1);
@@ -539,8 +485,6 @@ void ofApp::drawCorona()
     
         //shader.setUniformTexture("tex2", movie.getTextureReference(), 3);
         //shader.setUniformTexture("imageMask", maskFbo.getTextureReference(), 4);
-    
-
     
         coronaShader.begin();
         //coronaShader.setUniform1f("corona", 1);
@@ -728,11 +672,24 @@ void ofApp::checkOSC() {
         if(m.getAddress() == "/1/push4"){
             //cout << m.getArgAsFloat(0) << "\n";
             if (m.getArgAsFloat(0) == 1 ) {
-                filterComposition = !filterComposition;
+                
+                if (compositionDepth == 0 || compositionDepth == 3) {
+                    filterComposition = true;
+                    compositionDepth = 1; // ijungiam pirma pacveiksliuka
+                } else if ( compositionDepth == 1) {
+                    compositionDepth = 2; // ijungiam antra paveiksliuka
+                } else if ( compositionDepth == 2) {
+                    filterComposition = false;
+                    compositionDepth = 3 ;
+                }
+                
+                cout << "comp Depth" << compositionDepth << "\n";
+                
                 //cout << filterComposition << "\n";
                 filterCoordinates =     false;
                 filterVisible =         false;
                 filterXraySound =       false;
+                
             }
         }
         
@@ -794,4 +751,70 @@ void ofApp::checkOSC() {
         }*/
         
     }
+}
+
+void ofApp::visionFilterPart(){
+    
+    ofClear ( 0, 0, 0 );
+    
+    glDisable(GL_CULL_FACE);
+    ofBackgroundGradient(ofColor(30, 30, 30), ofColor(0, 0, 0), OF_GRADIENT_CIRCULAR);
+    glEnable(GL_CULL_FACE);
+    
+    camera.begin();
+    //ofDrawAxis(1000);
+    
+    // GRADIENT PLANE
+#ifdef DEBUG
+    if (showGradient) {
+        drawGradient();
+    }
+#else 
+    drawGradient();
+#endif
+    
+    // SUN SPHERE
+#ifdef DEBUG
+    if (showSphere) {
+        //glEnable( GL_TEXTURE_2D );
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(true);
+        drawSphere();
+        glDisable(GL_DEPTH_TEST);
+    }
+#else
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(true);
+        drawSphere();
+        glDisable(GL_DEPTH_TEST);
+#endif
+    
+    
+    ofEnableBlendMode(OF_BLENDMODE_ADD);
+#ifdef DEBUG
+    // SUN CORONA
+    if (showCorona) {
+        drawCorona();
+    }
+    // SUN NEBULAS
+    if (showNebulas){
+        drawNebulas();
+    }
+    // SUN GLOW
+    if (showGlow){
+        drawGlow();
+    }
+#else
+    drawCorona();
+    drawNebulas();
+    drawGlow();
+#endif
+    ofDisableBlendMode();
+    ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+    
+    camera.end();
+//#ifdef DEBUG
+    gui.draw();
+//#else
+//#endif
 }

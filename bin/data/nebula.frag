@@ -31,13 +31,13 @@ void main(){
     
     // FADE NEBULA CLOSE TO STAR SURFACE TO PREVENT VISIBLE CLIPPING
     float dist = length( vVertex.xyz );
-    if( dist < radius ) discard;
+    if( dist < radius * 0.5 ) discard;
     
     float maxAlpha = 1.0;
-    float distThresh = randomas * 1.1; //  110
-    float distDelta  = distThresh - randomas; // 10
+    float distThresh = (radius*0.5) * 1.1; //  110
+    float distDelta  = distThresh - radius*0.5; // 10
     if ( dist < distThresh ){
-        maxAlpha = ( dist - randomas ) / distDelta;
+        maxAlpha = ( dist - radius*0.5 ) / distDelta;
     }
     // END FADE
     
