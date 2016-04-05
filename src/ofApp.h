@@ -40,6 +40,7 @@ class ofApp : public ofBaseApp{
         ofShader shaderPlane;
         ofEasyCam camera;
 		
+        bool drawGui;
         ofxPanel gui;
     
         ofxFloatSlider solarRadius;
@@ -142,4 +143,17 @@ class ofApp : public ofBaseApp{
     ofImage composition02Image;
     int compositionDepth;
     ofImage xraySound;
+    
+    // star settings
+
+    float starRadiusGuiDest;
+    float coronaRadiusDest;
+    float specSplvDest;
+    float nebulaRadiusDest;
+    
+    void updateGUI();
+    
+    int numGlowsToSpawn;
+    int numNebulasToSpawn;
+
 };

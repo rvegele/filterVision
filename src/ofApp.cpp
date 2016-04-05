@@ -58,9 +58,11 @@ void ofApp::setup(){
     
     compositionDepth = 0;
     
+
     gui.setup(); // most of the time you don't need a name
     
-    gui.add(solarRadius.setup("radius", 300.25, 1, 400));
+    starRadiusGuiDest = 300.25;
+    gui.add(solarRadius.setup("radius", starRadiusGuiDest, 1, 400));
     
     gui.add(color.setup("color",
                         ofFloatColor(0.92, 0.82, 0.34),
@@ -71,9 +73,14 @@ void ofApp::setup(){
     gui.add(clmpMax.setup("clamp Max", 0.75, 0.0, 1.0)); // 0.585
     gui.add(dtt.setup("dot mult", 0.200, 0.0, 1.0));      //  0.495
     
+    coronaRadiusDest = 1.95;
     gui.add(coronaRadius.setup("coronaR", 1.95, 1, 10));
+    
+    specSplvDest = 0.55;
     gui.add(specSpalva.setup("specSplv", 0.55, 0, 1.0));
-    gui.add(nebulaRadius.setup("nebulaR", 1, 0, 5));
+
+    nebulaRadiusDest = 1.0;
+    gui.add(nebulaRadius.setup("nebulaR", 1.0, 0, 5.0));
     
     gui.add(randomas.setup("randomas", 134, 0, 400));
     //gui.add(circleResolution.setup("circle res", 5, 3, 90));
@@ -116,10 +123,12 @@ void ofApp::setup(){
     zSTR = "0";
     
     //SOUND
-    lightCurveAudio.load("sound/007_Kepler_Star_KIC12268220C Light_Curve_Waves_to_Sound.wav");
+    lightCurveAudio.load("sound/006_Kepler_Star_KIC7671081B_Light_Curve_Waves_to_Sound.wav");
     lightCurveAudio.setVolume(0.75f);
     lightCurveAudio.setMultiPlay(false);
     
+    numGlowsToSpawn = 3;
+    numNebulasToSpawn = 5;
 }
 
 //--------------------------------------------------------------
@@ -146,11 +155,11 @@ void ofApp::update(){
     // CONTROLLER
     if( getTick() ){
         // ADD GLOWS
-        int numGlowsToSpawn = 3;
+        //numGlowsToSpawn = 4;
         mController.addGlows( solarRadius*nebulaRadius*0.5, numGlowsToSpawn );
         
         // ADD NEBULAS
-        int numNebulasToSpawn = 4;
+        //numNebulasToSpawn = 8;
         //if( mRoom.isPowerOn() ) numNebulasToSpawn = (int)( 8 );//* mStar.mRadiusMulti );
         
         mController.addNebulas( solarRadius*nebulaRadius*0.5, /*mStar,*/ numNebulasToSpawn );
@@ -163,7 +172,7 @@ void ofApp::update(){
     
 //!!!!!!!!!!!!!!!!!!! REMEMBER TO TURN ON OTHER THINGS IN CONTROLLER UPDATE
         mController.update( getTimeDelta() );
-    
+        updateGUI();
 }
 
 //--------------------------------------------------------------
@@ -175,8 +184,9 @@ void ofApp::draw(){
     // DEBUG - FPS
     ofSetColor(225);
     //ofFill();
-    ofDrawBitmapString(ofToString(ofGetFrameRate()), ofPoint(ofGetWindowWidth() - 70, 20));
-    
+    if (drawGui) {
+        ofDrawBitmapString(ofToString(ofGetFrameRate()), ofPoint(ofGetWindowWidth() - 70, 20));
+    }
 #else
     //ofBackgroundGradient(ofColor::green, ofColor::gray);
     //ofEnableBlendMode(OF_BLENDMODE_ADD);
@@ -294,6 +304,7 @@ void ofApp::draw(){
     // DEBUG - FPS
     ofSetColor(225);
     //ofFill();
+    
     ofDrawBitmapString(ofToString(ofGetFrameRate()), ofPoint(ofGetWindowWidth() - 70, 20));
     
 #endif
@@ -301,11 +312,12 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
+    
     switch( key ) {
         //case '0':	showGradient = !showGradient; break;
         case '1':	showSphere = !showSphere; break;
@@ -316,8 +328,41 @@ void ofApp::keyReleased(int key){
             
         case '6':	showGlow = true; showGradient = true; showCorona = true; showNebulas = true; showSphere = true; break;
             
-        
+        case 'g':   drawGui = !drawGui; break;
         case 'b':	blending = !blending; break;
+            
+        case 'R':
+            // code
+            starRadiusGuiDest = 100.25;
+            coronaRadiusDest = 1.90;
+            specSplvDest = 0.225;
+            nebulaRadiusDest = 0.875;
+            numGlowsToSpawn = 3;
+            numNebulasToSpawn = 5;
+            break;
+        
+        case 'Y':
+            starRadiusGuiDest = 300.25;
+            coronaRadiusDest = 1.95;
+            specSplvDest = 0.55;
+            nebulaRadiusDest = 1.0;
+            numGlowsToSpawn = 4;
+            numNebulasToSpawn = 8;
+        break;
+            
+        case 'B':
+            starRadiusGuiDest = 400.25;
+            coronaRadiusDest = 1.95;
+            specSplvDest = 0.91;
+            nebulaRadiusDest = 1.0;
+            numGlowsToSpawn = 15;
+            numNebulasToSpawn = 15;
+            break;
+            
+        case 'f':
+            ofToggleFullscreen();
+        break;
+            
         default: break;
     }
 
@@ -814,7 +859,17 @@ void ofApp::visionFilterPart(){
     
     camera.end();
 //#ifdef DEBUG
-    gui.draw();
+    if (drawGui) {
+        gui.draw();
+    }
 //#else
 //#endif
+}
+
+void ofApp::updateGUI(){
+    // update GUI
+    solarRadius     = starRadiusGuiDest * 0.15 + solarRadius    * 0.85;
+    coronaRadius    = coronaRadiusDest  * 0.15 + coronaRadius   * 0.85;
+    specSpalva      = specSplvDest      * 0.15 + specSpalva     * 0.85;
+    nebulaRadius    = nebulaRadiusDest  * 0.15 + nebulaRadius   * 0.85;
 }
