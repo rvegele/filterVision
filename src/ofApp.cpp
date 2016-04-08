@@ -47,9 +47,10 @@ void ofApp::setup(){
     textureSmallGrid.load("smallGrid.png");
     textureGlow.load("glow.png");
     
-    composition01Image.load("helium-00.png");
+    composition01Image.load("comp-02.jpg");
     composition01Image.resize(composition01Image.getWidth()*0.5, composition01Image.getHeight()*0.5);
-    composition02Image.load("helium-01.png");
+    
+    composition02Image.load("comp-04.jpg");
     composition02Image.resize(composition02Image.getWidth()*0.5, composition02Image.getHeight()*0.5);
     
     xraySound.load("xraySound.png");
@@ -129,6 +130,18 @@ void ofApp::setup(){
     
     numGlowsToSpawn = 3;
     numNebulasToSpawn = 5;
+    
+    // SERIAL
+    serial.listDevices();
+    vector <ofSerialDeviceInfo> deviceList = serial.getDeviceList();
+    int baud = 9600;
+    serial.setup(0, baud); //open the first device
+    //serial.setup("COM4", baud); // windows example
+    //serial.setup("/dev/tty.usbserial-A4001JEC", baud); // mac osx example
+    //serial.setup("/dev/ttyUSB0", baud); //linux example
+    memset(bytesReadString, 0, 4);
+    serialValue = 0;
+    //cout << ofGetWindowWidth() << " " << ofGetWindowHeight() << "\n";
 }
 
 //--------------------------------------------------------------
@@ -155,11 +168,11 @@ void ofApp::update(){
     // CONTROLLER
     if( getTick() ){
         // ADD GLOWS
-        //numGlowsToSpawn = 4;
+        numGlowsToSpawn = 3;
         mController.addGlows( solarRadius*nebulaRadius*0.5, numGlowsToSpawn );
         
         // ADD NEBULAS
-        //numNebulasToSpawn = 8;
+        numNebulasToSpawn = 5;
         //if( mRoom.isPowerOn() ) numNebulasToSpawn = (int)( 8 );//* mStar.mRadiusMulti );
         
         mController.addNebulas( solarRadius*nebulaRadius*0.5, /*mStar,*/ numNebulasToSpawn );
@@ -173,6 +186,7 @@ void ofApp::update(){
 //!!!!!!!!!!!!!!!!!!! REMEMBER TO TURN ON OTHER THINGS IN CONTROLLER UPDATE
         mController.update( getTimeDelta() );
         updateGUI();
+        updateSerial();
 }
 
 //--------------------------------------------------------------
@@ -287,24 +301,30 @@ void ofApp::draw(){
         glDisable(GL_CULL_FACE);
         ofBackgroundGradient(ofColor(30, 30, 30), ofColor(0, 0, 0), OF_GRADIENT_CIRCULAR);
         glEnable(GL_CULL_FACE);
-        
-        if (compositionDepth == 1 ) {
         composition01Image.draw((ofGetWindowWidth()/2)-(composition01Image.getWidth()/2), (ofGetWindowHeight()/2)-(composition01Image.getHeight()/2));
-        } else  {
-            composition02Image.draw((ofGetWindowWidth()/2)-(composition02Image.getWidth()/2), (ofGetWindowHeight()/2)-(composition02Image.getHeight()/2));
-            
-        }
     }
     // filter COMPOSITION ends
     
     // --------------------------------------- //
+    
+    // --------------------------------------- //
+    // filter COMPOSITION begins
+    if (filter == 5) {
+        glDisable(GL_CULL_FACE);
+        ofBackgroundGradient(ofColor(30, 30, 30), ofColor(0, 0, 0), OF_GRADIENT_CIRCULAR);
+        glEnable(GL_CULL_FACE);
+        composition02Image.draw((ofGetWindowWidth()/2)-(composition02Image.getWidth()/2), (ofGetWindowHeight()/2)-(composition02Image.getHeight()/2));
+    }
+    // filter COMPOSITION ends
+    
+    // --------------------------------------- //
+    
     
     //ofDisableDepthTest();
     
     // DEBUG - FPS
     ofSetColor(225);
     //ofFill();
-    
     ofDrawBitmapString(ofToString(ofGetFrameRate()), ofPoint(ofGetWindowWidth() - 70, 20));
     
 #endif
@@ -674,8 +694,8 @@ void ofApp::updateTime()
 void ofApp::checkOSC() {
     
     while(receiver.hasWaitingMessages()){    // check for waiting messages
-        ofxOscMessage m;                     // get the next message
-        receiver.getNextMessage(m);
+          ofxOscMessage m;                     // get the next message
+          receiver.getNextMessage(m);
         
         // this part happens twice, because we receive ON and then OFF straight after
         if(m.getAddress() == "/1/push1"){
@@ -739,13 +759,13 @@ void ofApp::checkOSC() {
         }
         
         if (m.getArgAsFloat(0) != 0 ) {
-        cout << "COORD: " << filterCoordinates << " | VIS: " << filterVisible << " | SOUND: " << filterXraySound << " | COMPOSITION: " << filterComposition << "\n";
+        //cout << "COORD: " << filterCoordinates << " | VIS: " << filterVisible << " | SOUND: " << filterXraySound << " | COMPOSITION: " << filterComposition << "\n";
             if      (filterCoordinates) { filter = 1; }
             else if (filterVisible)     { filter = 2; }
             else if (filterXraySound)   { filter = 3; }
             else if (filterComposition) { filter = 4; }
             else                        { filter = 1; }
-            cout << "Filter: " << filter << "\n";
+            //cout << "Filter: " << filter << "\n";
         }
         
         if(m.getAddress() == "/1/fader1"){
@@ -834,8 +854,8 @@ void ofApp::visionFilterPart(){
         glDisable(GL_DEPTH_TEST);
 #endif
     
-    
     ofEnableBlendMode(OF_BLENDMODE_ADD);
+    
 #ifdef DEBUG
     // SUN CORONA
     if (showCorona) {
@@ -856,8 +876,8 @@ void ofApp::visionFilterPart(){
 #endif
     ofDisableBlendMode();
     ofEnableBlendMode(OF_BLENDMODE_ALPHA);
-    
     camera.end();
+    
 //#ifdef DEBUG
     if (drawGui) {
         gui.draw();
@@ -867,9 +887,46 @@ void ofApp::visionFilterPart(){
 }
 
 void ofApp::updateGUI(){
-    // update GUI
+    // update GUI with fade // overwrites stuff
     solarRadius     = starRadiusGuiDest * 0.15 + solarRadius    * 0.85;
     coronaRadius    = coronaRadiusDest  * 0.15 + coronaRadius   * 0.85;
     specSpalva      = specSplvDest      * 0.15 + specSpalva     * 0.85;
     nebulaRadius    = nebulaRadiusDest  * 0.15 + nebulaRadius   * 0.85;
+}
+
+void ofApp::updateSerial(){
+    
+    if(serial.available()){
+        
+        unsigned char bytesReturned[3];
+        memset(bytesReadString, 0, 3);
+        memset(bytesReturned, 0, 4);
+        // This reads the data now that arduino is sending a response,
+        serial.readBytes(bytesReturned, 4);
+        string serialData = (char*) bytesReturned;
+        string valdymas = serialData;
+        
+        serialValue = ofToInt(serialData);
+        
+        if ( serialValue == 0 ) {
+            filter = 1; }
+        
+        if ( serialValue == 1 ) { // visible RFID
+            filter = 2; }
+        
+        if ( serialValue == 2 ) { // sound RFID
+            filter = 3;  }
+        
+        if ( serialValue == 3 ) { // spectrum RFID
+            filter = 4;
+        }
+        if ( serialValue == 4 ) { // spectrum RFID
+            filter = 5;
+        }
+        cout << serialValue << "\n";
+        
+        
+        serial.flush();
+    }
+
 }

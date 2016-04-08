@@ -9,7 +9,7 @@
 #define PORT 3000 // listen on port 3000
 #define NUM_MSG_STRINGS 20
 
-#define DEBUG
+//#define DEBUG
 
 class ofApp : public ofBaseApp{
 
@@ -155,5 +155,17 @@ class ofApp : public ofBaseApp{
     
     int numGlowsToSpawn;
     int numNebulasToSpawn;
+    
+    // SERIAL
+    bool		bSendSerialMessage;			// a flag for sending serial
+    char		bytesRead[3];				// data from serial, we will be trying to read 3
+    char		bytesReadString[4];			// a string needs a null terminator, so we need 3 + 1 bytes
+    int			nBytesRead;					// how much did we read?
+    int			nTimesRead;					// how many times did we read?
+    float		readTime;					// when did we last read?
+    
+    ofSerial	serial;
+    void updateSerial();
+    int serialValue;
 
 };
