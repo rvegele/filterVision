@@ -9,7 +9,7 @@
 #define PORT 3000 // listen on port 3000
 #define NUM_MSG_STRINGS 20
 
-//#define DEBUG
+#define DEBUG
 
 class ofApp : public ofBaseApp{
 
@@ -38,33 +38,22 @@ class ofApp : public ofBaseApp{
     
         ofShader shader;
         ofShader shaderPlane;
+    
         ofEasyCam camera;
 		
         bool drawGui;
         ofxPanel gui;
-    
         ofxFloatSlider solarRadius;
         ofxFloatColorSlider color;
-    
         ofxFloatSlider clmpMin;
         ofxFloatSlider clmpMax;
         ofxFloatSlider dtt;
-    
         ofxFloatSlider coronaRadius;
-    
         ofxFloatSlider specSpalva;
         ofxFloatSlider nebulaRadius;
-    
         ofxFloatSlider randomas;
-        //ofxVec2Slider center;
-        //ofxIntSlider circleResolution;
     
-        //ofxToggle filled;
-        //ofxButton twoCircles;
-        //ofxButton ringButton;
-        //ofxLabel screenSize;
-    
-        float colorz;
+        //float colorz;
     
         void billboardBegin();
         void billboardEnd();
@@ -80,6 +69,7 @@ class ofApp : public ofBaseApp{
     
         bool showNebulas;
         void drawNebulas();
+    
         ofShader nebulaShader;
         ofImage textureNebula;
         ofImage textureSmallGrid;
@@ -167,5 +157,15 @@ class ofApp : public ofBaseApp{
     ofSerial	serial;
     void updateSerial();
     int serialValue;
-
+    
+    // VIDEO RECORDER
+    int 				snapCounter;
+    string 				snapString;
+    ofImage 			img;
+    bool 				bSnapshot;
+    float 				phase;
+    
+    // PIXELATE
+    //int pixelateImage;    // argument is resulting pixel size
+    //void pixelateImage(int pxSize);
 };

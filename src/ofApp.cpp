@@ -135,13 +135,22 @@ void ofApp::setup(){
     serial.listDevices();
     vector <ofSerialDeviceInfo> deviceList = serial.getDeviceList();
     int baud = 9600;
-    serial.setup(0, baud); //open the first device
+    serial.setup(3, baud); //open the first device
     //serial.setup("COM4", baud); // windows example
     //serial.setup("/dev/tty.usbserial-A4001JEC", baud); // mac osx example
     //serial.setup("/dev/ttyUSB0", baud); //linux example
     memset(bytesReadString, 0, 4);
     serialValue = 0;
     //cout << ofGetWindowWidth() << " " << ofGetWindowHeight() << "\n";
+    
+    // VIDEO RECORDING //
+    snapCounter = 0;
+    bSnapshot = false;
+    phase = 0;
+    
+    // PIXELATE IMAGE
+    //pixelateImage = 80;    // argument is resulting pixel size
+
 }
 
 //--------------------------------------------------------------
@@ -150,7 +159,7 @@ void ofApp::update(){
     ofSoundUpdate();
     
     // OSC
-    checkOSC();
+    //checkOSC();
     
     //plane.set( solarRadius*30, solarRadius*30 );
     //ofVec3f haha = camera.getOrientationEuler();
@@ -168,11 +177,11 @@ void ofApp::update(){
     // CONTROLLER
     if( getTick() ){
         // ADD GLOWS
-        numGlowsToSpawn = 3;
+        //numGlowsToSpawn = 3;
         mController.addGlows( solarRadius*nebulaRadius*0.5, numGlowsToSpawn );
         
         // ADD NEBULAS
-        numNebulasToSpawn = 5;
+        //numNebulasToSpawn = 5;
         //if( mRoom.isPowerOn() ) numNebulasToSpawn = (int)( 8 );//* mStar.mRadiusMulti );
         
         mController.addNebulas( solarRadius*nebulaRadius*0.5, /*mStar,*/ numNebulasToSpawn );
@@ -185,8 +194,13 @@ void ofApp::update(){
     
 //!!!!!!!!!!!!!!!!!!! REMEMBER TO TURN ON OTHER THINGS IN CONTROLLER UPDATE
         mController.update( getTimeDelta() );
-        updateGUI();
-        updateSerial();
+    
+        //#ifdef DEBUG
+        //#else
+            updateGUI();
+        //#endif
+    
+        //updateSerial();
 }
 
 //--------------------------------------------------------------
@@ -328,6 +342,17 @@ void ofApp::draw(){
     ofDrawBitmapString(ofToString(ofGetFrameRate()), ofPoint(ofGetWindowWidth() - 70, 20));
     
 #endif
+    
+    if (bSnapshot == true){
+        // grab a rectangle at 200,200, width and height of 300,180
+        img.grabScreen(0,0,ofGetWindowWidth(),ofGetWindowHeight());
+        string fileName = "screengrab/snapshot_"+ofToString(10000+snapCounter)+".png";
+        img.save(fileName);
+        //snapString = "saved " + fileName;
+        snapCounter++;
+        bSnapshot = false;
+    }
+
 }
 
 //--------------------------------------------------------------
@@ -340,6 +365,8 @@ void ofApp::keyReleased(int key){
     
     switch( key ) {
         //case '0':	showGradient = !showGradient; break;
+        case 'x':	bSnapshot = true; break;
+            
         case '1':	showSphere = !showSphere; break;
         case '2':	showGradient = !showGradient; break;
         case '3':	showCorona = !showCorona; break;
@@ -347,6 +374,11 @@ void ofApp::keyReleased(int key){
         case '5':	showGlow = !showGlow; break;
             
         case '6':	showGlow = true; showGradient = true; showCorona = true; showNebulas = true; showSphere = true; break;
+            
+        case '0':	showGlow = true; showGradient = true; showCorona = true; showNebulas = true; showSphere = true;
+            numGlowsToSpawn = 0;
+            numNebulasToSpawn = 0;
+            break;
             
         case 'g':   drawGui = !drawGui; break;
         case 'b':	blending = !blending; break;
@@ -930,3 +962,26 @@ void ofApp::updateSerial(){
     }
 
 }
+/*
+void ofApp::pixelateImage(int pxSize) {
+    
+    // use ratio of height/width...
+    float ratio;
+    if (ofGetWindowWidth() < ofGetWindowHeight()) {
+        ratio = ofGetWindowHeight()/ofGetWindowWidth();
+    }
+    else {
+        ratio = ofGetWindowWidth()/ofGetWindowHeight();
+    }
+    
+    // ... to set pixel height
+    int pxH = int(pxSize * ratio);
+
+    for (int x=0; x<ofGetWindowWidth(); x+=pxSize) {
+        for (int y=0; y<ofGetWindowHeight(); y+=pxH) {
+            //fill(p.get(x, y));
+            //rect(x, y, pxSize, pxH);
+        }
+    }
+}
+*/
