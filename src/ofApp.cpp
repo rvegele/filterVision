@@ -9,7 +9,7 @@
 void ofApp::setup(){
     
     ofSetVerticalSync(true);
-    ofBackground(0, 0, 0);
+    ofBackground(0, 0, 100);
     // SERIAL
     
     std::vector<ofx::IO::SerialDeviceInfo> devicesInfo = ofx::IO::SerialDeviceUtils::listDevices();
@@ -45,6 +45,7 @@ void ofApp::setup(){
     initTime = 0;
     bgAlpha = 0;
     
+    
     movVisibleLight.load("02_vis_light.mp4");
     movVisibleLight.setLoopState(OF_LOOP_NONE);
     
@@ -52,11 +53,10 @@ void ofApp::setup(){
     movSpectrum.setLoopState(OF_LOOP_NONE);
     
     movLightCurve.load("04_lightCurve.mp4");
-    movSpectrum.setLoopState(OF_LOOP_NONE);
+    movLightCurve.setLoopState(OF_LOOP_NONE);
     
     movLifecycle.load("05_lifecycle.mp4");
-    movSpectrum.setLoopState(OF_LOOP_NONE);
-    
+    movLifecycle.setLoopState(OF_LOOP_NONE);
     
     // FBO
     initFbo();
@@ -68,10 +68,9 @@ void ofApp::setup(){
     showNebulas = true;
     showGlow = true;
     
-
     // GL_REPEAT for texture wrap only works with NON-ARB textures //
-    ofDisableArbTex();
-    ofEnableAlphaBlending();
+    // this breaks videos
+    //ofDisableArbTex();
     
     icoSphere.set(0.5, 4);
     icoSphere.setPosition(0, 0, 0);
@@ -118,25 +117,24 @@ void ofApp::setup(){
     composition02Image.resize(composition02Image.getWidth()*0.5, composition02Image.getHeight()*0.5);
     
     compositionDepth = 0;
-    
 
     gui.setup(); // most of the time you don't need a name
-    /*
-    gui.add(color.setup("color",
-                        ofFloatColor(0.92, 0.82, 0.34),
-                        ofFloatColor(0.0,0.0),
-                        ofFloatColor(1.0,1.0)));
-    */
     gui.add(solarRadius.setup("radius", 100.25, 1, 400));
     gui.add(clmpMin.setup("clamp Min", 0.0, 0.0, 1.0));
     gui.add(clmpMax.setup("clamp Max", 0.75, 0.0, 1.0)); // 0.585
     gui.add(dtt.setup("dot mult", 0.200, 0.0, 1.0));      //  0.495
     gui.add(coronaRadius.setup("coronaR", 1.90, 1, 10));
-    gui.add(specSpalva.setup("specSplv", 0.255, 0, 1.0));
+    gui.add(specSpalva.setup("specSplv", 0.225, 0, 1.0));
     gui.add(nebulaRadius.setup("nebulaR", 0.875, 0, 5.0));
     gui.add(randomas.setup("randomas", 134, 0, 400));
     gui.add(numGlowsToSpawn.setup("glows", 3, 0, 50));
     gui.add(numNebulasToSpawn.setup("nebulaz", 5, 0, 50));
+    /*
+     gui.add(color.setup("color",
+     ofFloatColor(0.92, 0.82, 0.34),
+     ofFloatColor(0.0,0.0),
+     ofFloatColor(1.0,1.0)));
+    */
     
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
@@ -165,118 +163,192 @@ void ofApp::setup(){
     numGlowsToSpawn = 3;
     numNebulasToSpawn = 5;
     blending = true;
+    
+    //ofEnableAlphaBlending();
 }
 void ofApp::exit() {
     device.unregisterAllEvents(this);
 }
 //--------------------------------------------------------------
 void ofApp::update(){
+    // check when last instrument changed
+    // if enough time has passed then assign it
+    if (ofGetElapsedTimeMillis() - newSelectionTime > 2000 ){
+        if ( newInstrument != oldInstrument ) {
+            oldInstrument = newInstrument;
+            cout << "Set instrument: " << newInstrument << "\n";
+            initTime = ofGetElapsedTimef();
+            step = 1;
+        }
+    }
+    
+    auto duration = 1.f;
+    endTime = initTime + duration;
+    auto now = ofGetElapsedTimef();
+    
+    // fade on the black
+    if (step == 1) {
+        //increase alpha from 0 to 255;
+        bgAlpha = ofxeasing::map_clamp(now, initTime, endTime, 0, 255, &ofxeasing::linear::easeIn);
+        if ( bgAlpha == 255 ) {
+            step = 2;
+        }
+    }
+    
+    // fade out the black
+    if (step == 3)  {
+        //decrease alpha of bg from 255 to 0
+        bgAlpha = ofxeasing::map_clamp(now, initTime, endTime, 255, 0, &ofxeasing::linear::easeIn);
+    }
+    
+    // UPDATE VIDEOS
+    movVisibleLight.update();
+    movSpectrum.update();
+    //movLightCurve.update();
+    //movLifecycle.update();
     
     // UPDATE STAR
+    /*
     updateTime();
     tick();
     mController.update( getTimeDelta() );
-    
-}
-void ofApp::onSerialBuffer(const ofx::IO::SerialBufferEventArgs& args)
-{
-    std::string message = args.getBuffer().toString();
-    cout << "new message: " << message << "\n";
-    
-    vector<string> input = ofSplitString(message, ",");
-    
-    if(input.size() >= 1) {
-        
-        std::string knob = input.at(0);
-        int         val  = std::stoi (input.at(1),nullptr,0);
-        
-        //cout << "decoded message: " << "knob " << knob << " | value " << val << "\n";
-        
-        // change of the instrument and register time of change
-        if (knob == "ins") {
-            newSelectionTime = ofGetElapsedTimeMillis();
-            newInstrument = val;
-        }
-        
-        // if we're on coordinates and tweaking encoders
-        if ( newInstrument == 1 && (knob == "enc1" || knob == "enc2" || knob == "enc3") ) {
-            if      (knob == "enc1") {
-                if (val == 1) {
-                    coordX ++;
-                } else {
-                    coordX--;
-                }
-                //cout << "X: " << coordX << "\n";
-            }
-            else if (knob == "enc2") {
-                if (val == 1) {
-                    coordY++;
-                } else {
-                    coordY--;
-                }
-                //cout << "Y: " << coordY << "\n";
-            }
-            else if (knob == "enc3") {
-                if (val == 1) {
-                    coordZ++;
-                } else {
-                    coordZ--;
-                }
-                //cout << "Z: " << coordZ << "\n";
-            }
-        }
-        
-    }
-}
-
-void ofApp::onSerialError(const ofx::IO::SerialBufferErrorEventArgs& args)
-{
-    // Errors and their corresponding buffer (if any) will show up here.
-    //SerialMessage message(args.getBuffer().toString(),
-    //                      args.getException().displayText(),
-    //                      500);
-    //serialMessages.push_back(message);
-    //cout << args.getBuffer().toString() << "\n";
-}
-//--------------------------------------------------------------
-void ofApp::draw(){
-    // DRAW STAR
-
-    //starFbo.draw(0, 0);
-    
-    //glEnable(GL_BLEND);
-    //
-    
-    //ofClear(0, 0, 0, 0);
-    //glDisable(GL_CULL_FACE);
-    
-    ofEnableAlphaBlending();
-    //ofEnableBlendMode(OF_BLENDMODE_ALPHA);
-    
-    //starFbo.draw(0, 0);
-    // reset blending mode
-    //ofEnableAlphaBlending();
-    
-    //glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    //glDisable(GL_BLEND);
-    
-    //ofDisableBlendMode();
-    // this is where the FBO comes from
-    
-    //glEnable(GL_BLEND);
-    //glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
-    
     starFbo.begin();
         ofPushMatrix();
         ofTranslate( 1080 /2, 1293 /2) ;
         visionFilter();
         ofPopMatrix();
     starFbo.end();
-    // UPDATE STAR ENDS
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    starFbo.draw(0, 0);
+    ofDisableBlendMode();
+    */
     
-    //glDisable(GL_BLEND);
+    // IF COORDINATES MATCH BEGIN
+    // COORDINATES
+    if (oldInstrument == 1) {
+        if (step == 2) {
+            drawItem = 1;
+
+            drawImage = coordinateImage;
+            initTime = ofGetElapsedTimef();
+            endTime = initTime + duration;
+            step = 3;
+        }
+        
+        // STAR VISIBLE LIGHT
+    } else if (oldInstrument == 2) {
+        if (step == 2) {
+            drawItem = 2;
+            drawImage = backgroundImage;
+            initTime = ofGetElapsedTimef();
+            endTime = initTime + duration;
+            
+            //movVisibleLight.firstFrame();
+            step = 3;
+        }
+        
+        if (step == 3)  {
+            if (bgAlpha == 0 ) {
+                movVisibleLight.play();
+                step = 4;
+            }
+        }
+        
+        if (step == 4) {
+            if (!movVisibleLight.isPlaying()) {
+                // play the loop of star
+                movVisibleLight.play();
+            }
+        }
+        
+        // STAR SPECTRUM
+    } else if (oldInstrument == 3) {
+        if (step == 2) {
+            drawItem = 3;
+            drawImage = backgroundImage;
+            initTime = ofGetElapsedTimef();
+            endTime = initTime + duration;
+            // set 1st frame of video
+            movSpectrum.firstFrame();
+            step = 3;
+        }
+        
+        if (step == 3)  {
+            if (bgAlpha == 0 ) {
+                movSpectrum.play();
+                step = 4;
+            }
+        }
+        
+        if (step == 4) {
+            // IF THIS IS COMMENTED OUT THEN VIDEO PLAYS ONLY ONCE
+            if (!movSpectrum.isPlaying()) {
+            // play the loop of star
+                movSpectrum.play();
+            }
+        }
+        
+        
+        // STAR LIGHT CURVE
+    } else if (oldInstrument == 4) {
+        drawItem = 4;
+        // fade over black
+        // play fade in
+        // show main
+        
+        // STAR LIFECYCLE
+    } else if (oldInstrument == 5) {
+        drawItem = 5;
+        // fade over black
+        // play fade in
+        // show main
+        
+        // revert to COORDINATES in case of error
+    } else {
+        // should set this to drawItem 1 to make coords default
+        
+        // drawItem = 1;
+        // fade over black
+        // play fade in
+        // show main
+        
+    }
+    // IF COORDINATES MATCH END
+    
+    
+    // IF COORDINATED DON'T MATCH BEGIN
+    // IF COORDINATES DON'T MATCH END
+}
+
+//--------------------------------------------------------------
+void ofApp::draw(){
+    ofEnableAlphaBlending();
+    
+    ofSetColor(255,255,255,255);
+    backgroundImage.draw(0, 0);
+    
+    if (drawItem == 1) {
+        ofSetColor(255,255,255,255);
+        drawImage.draw(0, 0);
+        // draw changing coordinate text
+    }
+    
+    if (drawItem == 2) {
+        ofSetColor(255,255,255,255);
+        drawImage.draw(0, 0);
+        movVisibleLight.draw(0,0);
+    }
+    
+    if (drawItem == 3) {
+        ofSetColor(255,255,255,255);
+        drawImage.draw(0, 0);
+        movSpectrum.draw(0,0);
+    }
+    
+    
+    // black background
+    ofSetColor(255,255,255,bgAlpha);
+    backgroundFadeOverNew.draw(0, 0);
+    
+
     // FOR SCREENSHOT
     //ofDisableDepthTest();
     // for saving frames
@@ -291,13 +363,16 @@ void ofApp::draw(){
         bSnapshot = false;
     }
     */
-    
+   
+    /*
     ofSetColor(225);
     if (drawGui) {
         gui.draw();
         ofDrawBitmapString(ofToString(ofGetFrameRate()), ofPoint(ofGetWindowWidth() - 70, 20));
     }
+    
     ofDisableBlendMode();
+     */
 }
 
 //--------------------------------------------------------------
@@ -659,7 +734,7 @@ void ofApp::visionFilter(){
     
     
     ofClear(255, 255, 255, 0);
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    //glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     //ofClear ( 0, 0, 0 );
     //glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     ofBackground(0, 0, 0);
@@ -742,4 +817,65 @@ void ofApp::initFbo() {
     starFbo.begin();
         ofClear(0, 0, 0, 0);
     starFbo.end();
+}
+
+void ofApp::onSerialBuffer(const ofx::IO::SerialBufferEventArgs& args)
+{
+    std::string message = args.getBuffer().toString();
+    cout << "new message: " << message << "\n";
+    
+    vector<string> input = ofSplitString(message, ",");
+    
+    if(input.size() >= 1) {
+        
+        std::string knob = input.at(0);
+        int         val  = std::stoi (input.at(1),nullptr,0);
+        
+        //cout << "decoded message: " << "knob " << knob << " | value " << val << "\n";
+        
+        // change of the instrument and register time of change
+        if (knob == "ins") {
+            newSelectionTime = ofGetElapsedTimeMillis();
+            newInstrument = val;
+        }
+        
+        // if we're on coordinates and tweaking encoders
+        if ( newInstrument == 1 && (knob == "enc1" || knob == "enc2" || knob == "enc3") ) {
+            if      (knob == "enc1") {
+                if (val == 1) {
+                    coordX ++;
+                } else {
+                    coordX--;
+                }
+                //cout << "X: " << coordX << "\n";
+            }
+            else if (knob == "enc2") {
+                if (val == 1) {
+                    coordY++;
+                } else {
+                    coordY--;
+                }
+                //cout << "Y: " << coordY << "\n";
+            }
+            else if (knob == "enc3") {
+                if (val == 1) {
+                    coordZ++;
+                } else {
+                    coordZ--;
+                }
+                //cout << "Z: " << coordZ << "\n";
+            }
+        }
+        
+    }
+}
+
+void ofApp::onSerialError(const ofx::IO::SerialBufferErrorEventArgs& args)
+{
+    // Errors and their corresponding buffer (if any) will show up here.
+    //SerialMessage message(args.getBuffer().toString(),
+    //                      args.getException().displayText(),
+    //                      500);
+    //serialMessages.push_back(message);
+    //cout << args.getBuffer().toString() << "\n";
 }

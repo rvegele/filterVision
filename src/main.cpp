@@ -5,8 +5,8 @@
 //========================================================================
 int main( ){
     //ofSetLogLevel(OF_LOG_VERBOSE);
-    int windowWidth = 800;
-    int windowHeight = 600;
+    int windowWidth = 200;
+    int windowHeight = 200;
     
 #ifdef TARGET_OPENGLES
     ofGLESWindowSettings settings;
