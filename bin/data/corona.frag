@@ -1,7 +1,7 @@
 uniform sampler2D tex0;
 uniform sampler2D tex1;
 
-uniform vec4 color;
+//uniform vec4 color;
 
 varying vec2 texcoord;
 uniform float specSpalva;
@@ -14,7 +14,7 @@ void main(){
     // scroll
     vec3 col1 = spectrumCol;
     
-    vec4 colorCast = color;
+    //vec4 colorCast = color;
     // blend layers
     //vec3 col2 = vec3(0.0, 0.0, 1.0);
     

@@ -1,10 +1,30 @@
 #pragma once
 
 #include "ofMain.h"
+#include "ofxSerial.h"
+#include <vector>
+
 #include "ofxGui.h"
 #include "controller.h"
 
-#define DEBUG
+class SerialMessage {
+public:
+    SerialMessage(): fade(0) {
+    }
+    
+    SerialMessage(const std::string& _message,
+                  const std::string& _exception,
+                  int _fade):
+    message(_message),
+    exception(_exception),
+    fade(_fade)
+    {
+    }
+    
+    std::string message;
+    std::string exception;
+    int fade;
+};
 
 class ofApp : public ofBaseApp{
 
@@ -12,7 +32,7 @@ class ofApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
-
+    
 		void keyPressed(int key);
 		void keyReleased(int key);
 		void mouseMoved(int x, int y );
@@ -25,6 +45,50 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
+        void exit();
+        void onSerialBuffer(const ofx::IO::SerialBufferEventArgs& args);
+        void onSerialError(const ofx::IO::SerialBufferErrorEventArgs& args);
+        ofx::IO::BufferedSerialDevice device;
+        std::vector<SerialMessage> serialMessages;
+    
+        // instruments
+        int newInstrument;
+        int oldInstrument;
+        long long newSelectionTime;
+    
+        bool newStar = true;
+    
+        // coordinates
+        int coordX;
+        int coordY;
+        int coordZ;
+    
+        // images
+        ofImage backgroundImage;
+        ofImage coordinateImage;
+        ofImage drawImage;
+        int drawItem;
+    
+        ofImage backgroundFadeOverNew;
+        ofImage backgroundFadeOverOld;
+    
+        // for fading
+        float initTime;
+        float bgAlpha;
+        float endTime;
+    
+        int step;
+    
+        // VIDEOS
+        ofVideoPlayer movVisibleLight;
+        ofVideoPlayer movSpectrum;
+        ofVideoPlayer movLightCurve;
+        ofVideoPlayer movLifecycle;
+    
+        // STAR FBO
+        ofFbo starFbo; // with alpha
+        void initFbo();
+        // STAR STUFF
         ofEasyCam camera;
     
         ofIcoSpherePrimitive icoSphere;
@@ -37,8 +101,6 @@ class ofApp : public ofBaseApp{
         ofShader shader;
         ofShader shaderPlane;
     
-    
-		
         bool drawGui;
         ofxPanel gui;
         ofxFloatSlider solarRadius;
@@ -50,6 +112,8 @@ class ofApp : public ofBaseApp{
         ofxFloatSlider specSpalva;
         ofxFloatSlider nebulaRadius;
         ofxFloatSlider randomas;
+        ofxIntSlider numGlowsToSpawn;
+        ofxIntSlider numNebulasToSpawn;
     
         //float colorz;
     
@@ -95,6 +159,7 @@ class ofApp : public ofBaseApp{
         bool			mTick;				// Tick (aka step) for triggering discrete events
     
         bool getTick();
+        void tick();
         void updateTime();
         float		getTimeDelta();
     
@@ -102,28 +167,14 @@ class ofApp : public ofBaseApp{
         Controller mController;
         ofVboMesh billboard;
     
-    
         //ofSoundPlayer  lightCurveAudio;
     
-    void visionFilterPart();
+    void visionFilter();
     
     ofImage composition01Image;
     ofImage composition02Image;
     int compositionDepth;
     
-    // star settings
-
-    float starRadiusGuiDest;
-    float coronaRadiusDest;
-    float specSplvDest;
-    float nebulaRadiusDest;
-    
-    void updateGUI();
-    
-    int numGlowsToSpawn;
-    int numNebulasToSpawn;
-    
-
     // VIDEO RECORDER
     int 				snapCounter;
     string 				snapString;
