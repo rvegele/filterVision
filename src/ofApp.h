@@ -4,11 +4,6 @@
 #include "ofxGui.h"
 #include "controller.h"
 
-// OSC
-#include "ofxOsc.h"
-#define PORT 3000 // listen on port 3000
-#define NUM_MSG_STRINGS 20
-
 #define DEBUG
 
 class ofApp : public ofBaseApp{
@@ -30,8 +25,11 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
+        ofEasyCam camera;
+    
         ofIcoSpherePrimitive icoSphere;
         ofPlanePrimitive plane;
+    
         ofImage textureGradient;
     
         bool mRenderSphere;
@@ -39,7 +37,7 @@ class ofApp : public ofBaseApp{
         ofShader shader;
         ofShader shaderPlane;
     
-        ofEasyCam camera;
+    
 		
         bool drawGui;
         ofxPanel gui;
@@ -74,10 +72,10 @@ class ofApp : public ofBaseApp{
         ofImage textureNebula;
         ofImage textureSmallGrid;
     
-        bool showGlow;
-        void drawGlow();
         ofShader glowShader;
         ofImage textureGlow;
+        void drawGlow();
+        bool showGlow;
 
         bool blending; // additive blending mode
     
@@ -102,37 +100,16 @@ class ofApp : public ofBaseApp{
     
         // CONTROLLER
         Controller mController;
-    
         ofVboMesh billboard;
     
-        //OSC
-        ofxOscReceiver receiver;
-        void checkOSC();
-    	long oscPushTime;
     
-        int filter; // which filter -  0.none 1.coordinates 2.vision 3.soundXray 4.composition
-        bool filterCoordinates;
-    
-        bool filterVisible;
-    
-        bool filterXraySound;
-        bool filterComposition;
-    
-        ofTrueTypeFont	gothamBold;
-        ofTrueTypeFont	gothamLight;
-    
-        ofSoundPlayer  lightCurveAudio;
-    
-    string xSTR;
-    string ySTR;
-    string zSTR;
+        //ofSoundPlayer  lightCurveAudio;
     
     void visionFilterPart();
     
     ofImage composition01Image;
     ofImage composition02Image;
     int compositionDepth;
-    ofImage xraySound;
     
     // star settings
 
@@ -146,18 +123,7 @@ class ofApp : public ofBaseApp{
     int numGlowsToSpawn;
     int numNebulasToSpawn;
     
-    // SERIAL
-    bool		bSendSerialMessage;			// a flag for sending serial
-    char		bytesRead[3];				// data from serial, we will be trying to read 3
-    char		bytesReadString[4];			// a string needs a null terminator, so we need 3 + 1 bytes
-    int			nBytesRead;					// how much did we read?
-    int			nTimesRead;					// how many times did we read?
-    float		readTime;					// when did we last read?
-    
-    ofSerial	serial;
-    void updateSerial();
-    int serialValue;
-    
+
     // VIDEO RECORDER
     int 				snapCounter;
     string 				snapString;

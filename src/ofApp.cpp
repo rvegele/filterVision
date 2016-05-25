@@ -53,10 +53,6 @@ void ofApp::setup(){
     composition02Image.load("comp-04.jpg");
     composition02Image.resize(composition02Image.getWidth()*0.5, composition02Image.getHeight()*0.5);
     
-    xraySound.load("xraySound.png");
-    xraySound.resize(xraySound.getWidth()*1.5, xraySound.getHeight()*1.5);
-    
-    
     compositionDepth = 0;
     
 
@@ -104,44 +100,8 @@ void ofApp::setup(){
     mTimeMulti = 60.0f;
     mTimer = 0.0f;
     
-    // OSC
-    // listen on the given port
-    cout << "listening for osc messages on port " << PORT << "\n";
-    receiver.setup(PORT);
-    filter = 0;
-    
-    ofTrueTypeFont::setGlobalDpi(72);
-    gothamBold.load("fonts/Gotham-Bold.otf",40, true, true);
-    gothamBold.setLineHeight(46.0f);
-    gothamBold.setLetterSpacing(1.037);
-    
-    gothamLight.load("fonts/Gotham-Light.otf",40, true, true);
-    gothamLight.setLineHeight(46.0f);
-    gothamLight.setLetterSpacing(1.037);
-    
-    xSTR = "0";
-    ySTR = "0";
-    zSTR = "0";
-    
-    //SOUND
-    lightCurveAudio.load("sound/006_Kepler_Star_KIC7671081B_Light_Curve_Waves_to_Sound.wav");
-    lightCurveAudio.setVolume(0.75f);
-    lightCurveAudio.setMultiPlay(false);
-    
     numGlowsToSpawn = 3;
     numNebulasToSpawn = 5;
-    
-    // SERIAL
-    serial.listDevices();
-    vector <ofSerialDeviceInfo> deviceList = serial.getDeviceList();
-    int baud = 9600;
-    serial.setup(3, baud); //open the first device
-    //serial.setup("COM4", baud); // windows example
-    //serial.setup("/dev/tty.usbserial-A4001JEC", baud); // mac osx example
-    //serial.setup("/dev/ttyUSB0", baud); //linux example
-    memset(bytesReadString, 0, 4);
-    serialValue = 0;
-    //cout << ofGetWindowWidth() << " " << ofGetWindowHeight() << "\n";
     
     // VIDEO RECORDING //
     snapCounter = 0;
@@ -150,38 +110,21 @@ void ofApp::setup(){
     
     // PIXELATE IMAGE
     //pixelateImage = 80;    // argument is resulting pixel size
-
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    // update the sound playing system:
-    ofSoundUpdate();
-    
-    // OSC
-    //checkOSC();
-    
-    //plane.set( solarRadius*30, solarRadius*30 );
-    //ofVec3f haha = camera.getOrientationEuler();
-    //float haha = camera.getAspectRatio();
-    //bool haha = camera.getForceAspectRatio();
-    //float haha = camera.getFov();
-    //cout << haha << "\n";
-    
-    // ROOM
-    //mRoom.update();
+  
     updateTime();
-    // STAR
-    //mStar.update( mRoom.getTimeDelta() );
     
     // CONTROLLER
     if( getTick() ){
         // ADD GLOWS
-        //numGlowsToSpawn = 3;
+        numGlowsToSpawn = 3;
         mController.addGlows( solarRadius*nebulaRadius*0.5, numGlowsToSpawn );
         
         // ADD NEBULAS
-        //numNebulasToSpawn = 5;
+        numNebulasToSpawn = 5;
         //if( mRoom.isPowerOn() ) numNebulasToSpawn = (int)( 8 );//* mStar.mRadiusMulti );
         
         mController.addNebulas( solarRadius*nebulaRadius*0.5, /*mStar,*/ numNebulasToSpawn );
@@ -192,21 +135,12 @@ void ofApp::update(){
         //mController.addDusts( mStar, numDustsToSpawn );
     }
     
-//!!!!!!!!!!!!!!!!!!! REMEMBER TO TURN ON OTHER THINGS IN CONTROLLER UPDATE
+        //!!!!!!!!!!!!!!!!!!! REMEMBER TO TURN ON OTHER THINGS IN CONTROLLER UPDATE
         mController.update( getTimeDelta() );
-    
-        //#ifdef DEBUG
-        //#else
-            updateGUI();
-        //#endif
-    
-        //updateSerial();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    
-#ifdef DEBUG
     
     visionFilterPart();
     // DEBUG - FPS
@@ -215,125 +149,7 @@ void ofApp::draw(){
     if (drawGui) {
         ofDrawBitmapString(ofToString(ofGetFrameRate()), ofPoint(ofGetWindowWidth() - 70, 20));
     }
-#else
-    //ofBackgroundGradient(ofColor::green, ofColor::gray);
-    //ofEnableBlendMode(OF_BLENDMODE_ADD);
-    //ofEnableDepthTest();
-    
-    // --------------------------------------- //
-    // filter BLANK begins
-        if (filter == 0) {
-            glDisable(GL_CULL_FACE);
-            ofBackgroundGradient(ofColor(30, 30, 30), ofColor(0, 0, 0), OF_GRADIENT_CIRCULAR);
-            glEnable(GL_CULL_FACE);
-            /*
-            ofBackground(30, 30, 30);
-            ofSetColor(225);
-            ofFill();
-            ofDrawBitmapString("Use OSC 1-2-3-4 for filter demo", 50, 50);
-            */
-        }
-    // filter BLANK ends
-    
-    // --------------------------------------- //
-    // filter COORDINATES begins
-        if (filter == 1) {
-            //ofBackground(255, 0, 0);
-            glDisable(GL_CULL_FACE);
-            ofBackgroundGradient(ofColor(30, 30, 30), ofColor(0, 0, 0), OF_GRADIENT_CIRCULAR);
-            glEnable(GL_CULL_FACE);
-            
-            ofSetColor(225);
-            
-            string step1 = "1. SET GALACTIC COORDINATES";
-            ofRectangle rect = gothamBold.getStringBoundingBox(step1, 0,0);
-            gothamBold.drawString(step1, ofGetWindowWidth()/2-rect.width/2, ofGetWindowHeight()/2-((rect.height / 2) + 200));
-            
-           
-            string xSTR1 = "X";
-            rect = gothamLight.getStringBoundingBox(xSTR1, 0,0);
-            gothamLight.drawString(xSTR1, (ofGetWindowWidth()/2-rect.width/2) - 300, ofGetWindowHeight()/2+(rect.height / 2)-115);
-            
-            string ySTR1 = "Y";
-            rect = gothamLight.getStringBoundingBox(ySTR1, 0,0);
-            gothamLight.drawString(ySTR1, (ofGetWindowWidth()/2-rect.width/2) , ofGetWindowHeight()/2+(rect.height / 2)-115);
-            
-            string zSTR1 = "Z";
-            rect = gothamLight.getStringBoundingBox(zSTR1, 0,0);
-            gothamLight.drawString(zSTR1, (ofGetWindowWidth()/2-rect.width/2) + 300, ofGetWindowHeight()/2+(rect.height / 2)-115);
-            
-    
-            //xSTR = "+12.675";
-            rect = gothamBold.getStringBoundingBox(xSTR, 0,0);
-            gothamBold.drawString(xSTR, (ofGetWindowWidth()/2-rect.width/2) - 300, ofGetWindowHeight()/2+(rect.height / 2));
-            
-            ofDrawLine(ofGetWindowWidth()/2-151, ofGetWindowHeight()/2-50, ofGetWindowWidth()/2-151, ofGetWindowHeight()/2+50);
-            
-            //string ySTR = "-5.224";
-            rect = gothamBold.getStringBoundingBox(ySTR, 0,0);
-            gothamBold.drawString(ySTR, (ofGetWindowWidth()/2-rect.width/2) , ofGetWindowHeight()/2+(rect.height / 2));
-            
-            ofDrawLine(ofGetWindowWidth()/2+151, ofGetWindowHeight()/2-50, ofGetWindowWidth()/2+151, ofGetWindowHeight()/2+50);
-            
-            //string zSTR = "+1.34";
-            rect = gothamBold.getStringBoundingBox(zSTR, 0,0);
-            gothamBold.drawString(zSTR, (ofGetWindowWidth()/2-rect.width/2) + 300, ofGetWindowHeight()/2+(rect.height / 2));
-            
-            string step2 = "2. INSERT FILTER";
-            rect = gothamBold.getStringBoundingBox(step2, 0,0);
-            gothamBold.drawString(step2, ofGetWindowWidth()/2-rect.width/2, ofGetWindowHeight()/2+((rect.height / 2) + 200));
 
-        }
-    // filter COORDINATES ends
-    
-    // --------------------------------------- //
-    // filter VISION begins
-        if (filter == 2) {
-            visionFilterPart();
-        }
-    // filter VISION end
-    
-    // --------------------------------------- //
-    // filter XRAY SOUND begins
-    if (filter == 3) {
-        glDisable(GL_CULL_FACE);
-        ofBackgroundGradient(ofColor(30, 30, 30), ofColor(0, 0, 0), OF_GRADIENT_CIRCULAR);
-        glEnable(GL_CULL_FACE);
-        xraySound.draw((ofGetWindowWidth()/2)-(xraySound.getWidth()/2), (ofGetWindowHeight()/2)-(xraySound.getHeight()/2));
-        
-        if (lightCurveAudio.isPlaying()) {
-            
-        } else { lightCurveAudio.play(); }
-    }
-    if (filter != 3 ){ lightCurveAudio.stop(); }
-    
-    // filter XRAY SOUND ends
-    
-    // --------------------------------------- //
-    // filter COMPOSITION begins
-    if (filter == 4) {
-        glDisable(GL_CULL_FACE);
-        ofBackgroundGradient(ofColor(30, 30, 30), ofColor(0, 0, 0), OF_GRADIENT_CIRCULAR);
-        glEnable(GL_CULL_FACE);
-        composition01Image.draw((ofGetWindowWidth()/2)-(composition01Image.getWidth()/2), (ofGetWindowHeight()/2)-(composition01Image.getHeight()/2));
-    }
-    // filter COMPOSITION ends
-    
-    // --------------------------------------- //
-    
-    // --------------------------------------- //
-    // filter COMPOSITION begins
-    if (filter == 5) {
-        glDisable(GL_CULL_FACE);
-        ofBackgroundGradient(ofColor(30, 30, 30), ofColor(0, 0, 0), OF_GRADIENT_CIRCULAR);
-        glEnable(GL_CULL_FACE);
-        composition02Image.draw((ofGetWindowWidth()/2)-(composition02Image.getWidth()/2), (ofGetWindowHeight()/2)-(composition02Image.getHeight()/2));
-    }
-    // filter COMPOSITION ends
-    
-    // --------------------------------------- //
-    
-    
     //ofDisableDepthTest();
     
     // DEBUG - FPS
@@ -341,8 +157,8 @@ void ofApp::draw(){
     //ofFill();
     ofDrawBitmapString(ofToString(ofGetFrameRate()), ofPoint(ofGetWindowWidth() - 70, 20));
     
-#endif
-    
+    // for saving frames
+    /*
     if (bSnapshot == true){
         // grab a rectangle at 200,200, width and height of 300,180
         img.grabScreen(0,0,ofGetWindowWidth(),ofGetWindowHeight());
@@ -352,6 +168,7 @@ void ofApp::draw(){
         snapCounter++;
         bSnapshot = false;
     }
+    */
 
 }
 
@@ -529,83 +346,25 @@ void ofApp::drawGradient() {
 }
 void ofApp::drawCorona()
 {
-    //if( mBillboard ){
-    //    gl::pushMatrices();
-    //    gl::rotate( mSpringCam.getCam().getOrientation() );
-    //}
-    //gl::color( ColorA( 1, 1, 1, 1 ) );
-    /*
-    mCoronaTex.bind();
-    mSpectrumTex.bind( 1 );
-    
-    mCoronaShader.bind();
-    
-    mCoronaShader.uniform( "coronaTex", 0 );
-    mCoronaShader.uniform( "spectrumTex", 1 );
-    
-    mCoronaShader.uniform( "starColor", mStar.mColor );
-    mCoronaShader.uniform( "power", mRoom.getPower() );
-    gl::drawSolidRect( Rectf( -radius, -radius, radius, radius ) );
-    mCoronaShader.unbind();
-    
-    if( mBillboard ) gl::popMatrices();
-    */
-    
-    //gl::rotate();
-    //gl::rotate( camera.getOrientationEuler() );
-    //gl::rotate( camera.getOrientationQuat());
-    
     ofPushMatrix();
     billboardBegin();
-    //ofTranslate(ofGetWidth()/2, ofGetHeight()/2, zoom);
-    //ofQuaternion kamera = camera.getOrientationQuat();
-    //ofVec3f kamera2 = kamera.asVec3();
-    //ofRotateX(-1 * kamera2.x);
-    //ofRotateY(-1 * kamera2.y);
-    //ofRotateZ(-1 * kamera2.z);
-    //ofRotate(camera, kamera2.x, 0, 0);
-    //ofRotate(camera, 0, kamera2.y, 0);
-    //ofRotate(camera, 0, 0, kamera2.z);
     
-        ofSetColor(1.0, 1.0, 1.0, 1.0);
-    
-        //float radiuss = solarRadius * coronaRadius;
-        //float colorr = gui.getParameter().color;
-        //float starColor = 0.9;
-        //textureCorona.getTexture().bind(1);
-        //textureSpectrum.getTexture().bind(1);
-    
-        //coronaShader.setUniformTexture("coronaTex", textureCorona.getTexture(), 1);
-        //coronaShader.setUniformTexture("spectrumTex", textureSpectrum.getTexture(), 2);
-    
-    
-    
-        //shader.setUniformTexture("tex2", movie.getTextureReference(), 3);
-        //shader.setUniformTexture("imageMask", maskFbo.getTextureReference(), 4);
-    
-        coronaShader.begin();
-        //coronaShader.setUniform1f("corona", 1);
-        coronaShader.setUniformTexture("tex0", textureCorona.getTexture(), 0);
-        coronaShader.setUniformTexture("tex1", textureSpectrum.getTexture(), 1);
+    ofSetColor(1.0, 1.0, 1.0, 1.0);
+    coronaShader.begin();
+    coronaShader.setUniformTexture("tex0", textureCorona.getTexture(), 0);
+    coronaShader.setUniformTexture("tex1", textureSpectrum.getTexture(), 1);
 
-        coronaShader.setUniform1f("radius", solarRadius);
-        coronaShader.setUniform1f("coronaRadius", coronaRadius);
-        coronaShader.setUniform4f("color", color);
+    coronaShader.setUniform1f("radius", solarRadius);
+    coronaShader.setUniform1f("coronaRadius", coronaRadius);
+    coronaShader.setUniform4f("color", color);
     
-        coronaShader.setUniform1f("specSpalva", specSpalva);
-        // -radius, -radius, radius, radius // -60, -60, 60, 60
-        //ofSetPlaneResolution(2, 2);
-    
-        ofDrawPlane(0, 0, 0, 1, 1);
-        //ofDrawPlane(0, 0 , coronaRadius, coronaRadius);
-    
+    coronaShader.setUniform1f("specSpalva", specSpalva);
+
+    ofDrawPlane(0, 0, 0, 1, 1);
     billboardEnd();
     ofPopMatrix();
     
-        coronaShader.end();
-    
-        //textureCorona.getTexture().unbind();
-
+    coronaShader.end();
 }
 
 void ofApp::drawSphere() {
@@ -629,9 +388,6 @@ void ofApp::drawSphere() {
 }
 
 void ofApp::drawNebulas() {
-    
-    
-        //ofEnableBlendMode(OF_BLENDMODE_ADD);
     
         nebulaShader.begin();
         nebulaShader.setUniformTexture("tex0", textureNebula.getTexture(), 0);
@@ -723,133 +479,6 @@ void ofApp::updateTime()
     }
 }
 
-void ofApp::checkOSC() {
-    
-    while(receiver.hasWaitingMessages()){    // check for waiting messages
-          ofxOscMessage m;                     // get the next message
-          receiver.getNextMessage(m);
-        
-        // this part happens twice, because we receive ON and then OFF straight after
-        if(m.getAddress() == "/1/push1"){
-            //cout << m.getArgAsFloat(0) << "\n";
-            if (m.getArgAsFloat(0) == 1 ) {
-                filterCoordinates = !filterCoordinates;
-                //cout << filterCoordinates << "\n";
-                filterVisible =         false;
-                filterXraySound =       false;
-                filterComposition =     false;
-            }
-        }
-        
-        // this part happens twice, because we receive ON and then OFF straight after
-        if(m.getAddress() == "/1/push2"){
-            //cout << m.getArgAsFloat(0) << "\n";
-            if (m.getArgAsFloat(0) == 1 ) {
-                filterVisible = !filterVisible;
-                //cout << filterVisible << "\n";
-                filterCoordinates =     false;
-                filterXraySound =       false;
-                filterComposition =     false;
-            }
-        }
-        
-        // this part happens twice, because we receive ON and then OFF straight after
-        if(m.getAddress() == "/1/push3"){
-            //cout << m.getArgAsFloat(0) << "\n";
-            if (m.getArgAsFloat(0) == 1 ) {
-                filterXraySound = !filterXraySound;
-                //cout << filterXraySound << "\n";
-                filterCoordinates =     false;
-                filterVisible =         false;
-                filterComposition =     false;
-            }
-        }
-        
-        // this part happens twice, because we receive ON and then OFF straight after
-        if(m.getAddress() == "/1/push4"){
-            //cout << m.getArgAsFloat(0) << "\n";
-            if (m.getArgAsFloat(0) == 1 ) {
-                
-                if (compositionDepth == 0 || compositionDepth == 3) {
-                    filterComposition = true;
-                    compositionDepth = 1; // ijungiam pirma pacveiksliuka
-                } else if ( compositionDepth == 1) {
-                    compositionDepth = 2; // ijungiam antra paveiksliuka
-                } else if ( compositionDepth == 2) {
-                    filterComposition = false;
-                    compositionDepth = 3 ;
-                }
-                
-                cout << "comp Depth" << compositionDepth << "\n";
-                
-                //cout << filterComposition << "\n";
-                filterCoordinates =     false;
-                filterVisible =         false;
-                filterXraySound =       false;
-                
-            }
-        }
-        
-        if (m.getArgAsFloat(0) != 0 ) {
-        //cout << "COORD: " << filterCoordinates << " | VIS: " << filterVisible << " | SOUND: " << filterXraySound << " | COMPOSITION: " << filterComposition << "\n";
-            if      (filterCoordinates) { filter = 1; }
-            else if (filterVisible)     { filter = 2; }
-            else if (filterXraySound)   { filter = 3; }
-            else if (filterComposition) { filter = 4; }
-            else                        { filter = 1; }
-            //cout << "Filter: " << filter << "\n";
-        }
-        
-        if(m.getAddress() == "/1/fader1"){
-            //cout << m.getArgAsFloat(0) << "\n";
-            xSTR = ofToString(roundf(m.getArgAsFloat(0) * 10) / 10);
-        }
-        
-        if(m.getAddress() == "/1/fader2"){
-            //cout << m.getArgAsFloat(0) << "\n";
-            ySTR = ofToString(roundf(m.getArgAsFloat(0) * 10) / 10);
-        }
-    
-        if(m.getAddress() == "/1/fader3"){
-            //cout << m.getArgAsFloat(0) << "\n";
-            zSTR = ofToString(roundf(m.getArgAsFloat(0) * 10) / 10);
-        }
-        /*
-           else {
-            // unrecognized message: display on the bottom of the screen
-            string msg_string;
-            msg_string = m.getAddress();
-            msg_string += ": ";
-            for(int i = 0; i < m.getNumArgs(); i++){
-                // get the argument type
-                msg_string += m.getArgTypeName(i);
-                msg_string += ":";
-                // display the argument - make sure we get the right type
-                if(m.getArgType(i) == OFXOSC_TYPE_INT32){
-                    msg_string += ofToString(m.getArgAsInt32(i));
-                }
-                else if(m.getArgType(i) == OFXOSC_TYPE_FLOAT){
-                    msg_string += ofToString(m.getArgAsFloat(i));
-                }
-                else if(m.getArgType(i) == OFXOSC_TYPE_STRING){
-                    msg_string += m.getArgAsString(i);
-                }
-                else{
-                    msg_string += "unknown";
-                }
-            }
-         
-            // add to the list of strings to display
-            //msg_strings[current_msg_string] = msg_string;
-            //timers[current_msg_string] = ofGetElapsedTimef() + 5.0f;
-            //current_msg_string = (current_msg_string + 1) % NUM_MSG_STRINGS;
-            // clear the next line
-            //msg_strings[current_msg_string] = "";
-        }*/
-        
-    }
-}
-
 void ofApp::visionFilterPart(){
     
     ofClear ( 0, 0, 0 );
@@ -862,16 +491,11 @@ void ofApp::visionFilterPart(){
     //ofDrawAxis(1000);
     
     // GRADIENT PLANE
-#ifdef DEBUG
     if (showGradient) {
         drawGradient();
     }
-#else 
-    drawGradient();
-#endif
     
     // SUN SPHERE
-#ifdef DEBUG
     if (showSphere) {
         //glEnable( GL_TEXTURE_2D );
         glEnable(GL_DEPTH_TEST);
@@ -879,16 +503,9 @@ void ofApp::visionFilterPart(){
         drawSphere();
         glDisable(GL_DEPTH_TEST);
     }
-#else
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(true);
-        drawSphere();
-        glDisable(GL_DEPTH_TEST);
-#endif
     
     ofEnableBlendMode(OF_BLENDMODE_ADD);
     
-#ifdef DEBUG
     // SUN CORONA
     if (showCorona) {
         drawCorona();
@@ -901,64 +518,14 @@ void ofApp::visionFilterPart(){
     if (showGlow){
         drawGlow();
     }
-#else
-    drawCorona();
-    drawNebulas();
-    drawGlow();
-#endif
+
     ofDisableBlendMode();
     ofEnableBlendMode(OF_BLENDMODE_ALPHA);
     camera.end();
     
-//#ifdef DEBUG
+
     if (drawGui) {
         gui.draw();
-    }
-//#else
-//#endif
-}
-
-void ofApp::updateGUI(){
-    // update GUI with fade // overwrites stuff
-    solarRadius     = starRadiusGuiDest * 0.15 + solarRadius    * 0.85;
-    coronaRadius    = coronaRadiusDest  * 0.15 + coronaRadius   * 0.85;
-    specSpalva      = specSplvDest      * 0.15 + specSpalva     * 0.85;
-    nebulaRadius    = nebulaRadiusDest  * 0.15 + nebulaRadius   * 0.85;
-}
-
-void ofApp::updateSerial(){
-    
-    if(serial.available()){
-        
-        unsigned char bytesReturned[3];
-        memset(bytesReadString, 0, 3);
-        memset(bytesReturned, 0, 4);
-        // This reads the data now that arduino is sending a response,
-        serial.readBytes(bytesReturned, 4);
-        string serialData = (char*) bytesReturned;
-        string valdymas = serialData;
-        
-        serialValue = ofToInt(serialData);
-        
-        if ( serialValue == 0 ) {
-            filter = 1; }
-        
-        if ( serialValue == 1 ) { // visible RFID
-            filter = 2; }
-        
-        if ( serialValue == 2 ) { // sound RFID
-            filter = 3;  }
-        
-        if ( serialValue == 3 ) { // spectrum RFID
-            filter = 4;
-        }
-        if ( serialValue == 4 ) { // spectrum RFID
-            filter = 5;
-        }
-        cout << serialValue << "\n";
-        
-        
-        serial.flush();
     }
 
 }
