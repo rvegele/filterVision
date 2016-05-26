@@ -81,7 +81,12 @@ class ofApp : public ofBaseApp{
     
         // VIDEOS
         ofVideoPlayer movVisibleLight;
+        ofFbo fboVisibleLight;
+    
         ofVideoPlayer movSpectrum;
+        ofFbo fboSpectrum;
+    
+    
         ofVideoPlayer movLightCurve;
         ofVideoPlayer movLifecycle;
     

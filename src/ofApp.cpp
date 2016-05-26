@@ -46,18 +46,6 @@ void ofApp::setup(){
     bgAlpha = 0;
     
     
-    movVisibleLight.load("02_vis_light.mp4");
-    movVisibleLight.setLoopState(OF_LOOP_NONE);
-    
-    movSpectrum.load("03_spectrum.mp4");
-    movSpectrum.setLoopState(OF_LOOP_NONE);
-    
-    movLightCurve.load("04_lightCurve.mp4");
-    movLightCurve.setLoopState(OF_LOOP_NONE);
-    
-    movLifecycle.load("05_lifecycle.mp4");
-    movLifecycle.setLoopState(OF_LOOP_NONE);
-    
     // FBO
     initFbo();
     
@@ -70,7 +58,7 @@ void ofApp::setup(){
     
     // GL_REPEAT for texture wrap only works with NON-ARB textures //
     // this breaks videos
-    //ofDisableArbTex();
+    ofDisableArbTex();
     
     icoSphere.set(0.5, 4);
     icoSphere.setPosition(0, 0, 0);
@@ -158,13 +146,36 @@ void ofApp::setup(){
     bSnapshot = false;
     phase = 0;
     
-    // PIXELATE IMAGE
-    //pixelateImage = 80;    // argument is resulting pixel size
     numGlowsToSpawn = 3;
     numNebulasToSpawn = 5;
     blending = true;
     
-    //ofEnableAlphaBlending();
+    //movVisibleLight.setPixelFormat(OF_PIXELS_RGBA);
+    movVisibleLight.load("02_vis_light.mp4");
+    movVisibleLight.setLoopState(OF_LOOP_NONE);
+    
+    movSpectrum.load("03_spectrum.mp4");
+    movSpectrum.setLoopState(OF_LOOP_NONE);
+    
+    movLightCurve.load("04_lightCurve.mp4");
+    movLightCurve.setLoopState(OF_LOOP_NONE);
+    
+    movLifecycle.load("05_lifecycle.mp4");
+    movLifecycle.setLoopState(OF_LOOP_NONE);
+    
+    ofFbo::Settings visFboSet;
+    visFboSet.width = movVisibleLight.getWidth();
+    visFboSet.height = movVisibleLight.getHeight();
+    visFboSet.internalformat = GL_RGBA;
+    visFboSet.textureTarget = GL_TEXTURE_2D;
+    fboVisibleLight.allocate(visFboSet);
+    
+    fboVisibleLight.begin();
+        ofClear(255, 255, 255, 0);
+    fboVisibleLight.end();
+    
+    ofEnableAlphaBlending();
+    ofEnableArbTex();
 }
 void ofApp::exit() {
     device.unregisterAllEvents(this);
@@ -203,12 +214,15 @@ void ofApp::update(){
     
     // UPDATE VIDEOS
     movVisibleLight.update();
+    fboVisibleLight.begin();
+        movVisibleLight.draw(0, 0);
+    fboVisibleLight.end();
+    
     movSpectrum.update();
     //movLightCurve.update();
     //movLifecycle.update();
     
     // UPDATE STAR
-    /*
     updateTime();
     tick();
     mController.update( getTimeDelta() );
@@ -219,7 +233,6 @@ void ofApp::update(){
         ofPopMatrix();
     starFbo.end();
     ofDisableBlendMode();
-    */
     
     // IF COORDINATES MATCH BEGIN
     // COORDINATES
@@ -241,7 +254,7 @@ void ofApp::update(){
             initTime = ofGetElapsedTimef();
             endTime = initTime + duration;
             
-            //movVisibleLight.firstFrame();
+            movVisibleLight.firstFrame();
             step = 3;
         }
         
@@ -320,6 +333,9 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+    
+    
+    
     ofEnableAlphaBlending();
     
     ofSetColor(255,255,255,255);
@@ -334,7 +350,12 @@ void ofApp::draw(){
     if (drawItem == 2) {
         ofSetColor(255,255,255,255);
         drawImage.draw(0, 0);
-        movVisibleLight.draw(0,0);
+        starFbo.draw(0, 200);
+        //movVisibleLight.draw(0,0);
+        
+        //ofSetHexColor(0xFFFFFF);
+        //fboVisibleLight.getTexture().draw(0, 0);
+        
     }
     
     if (drawItem == 3) {
