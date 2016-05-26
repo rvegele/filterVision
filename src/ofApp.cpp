@@ -150,9 +150,11 @@ void ofApp::setup(){
     numNebulasToSpawn = 5;
     blending = true;
     
-    //movVisibleLight.setPixelFormat(OF_PIXELS_RGBA);
-    movVisibleLight.load("02_vis_light.mp4");
+    movVisibleLight.setPixelFormat(OF_PIXELS_RGBA);
+    movVisibleLight.load("02_vis_light_transparent.mov");
     movVisibleLight.setLoopState(OF_LOOP_NONE);
+    movVisibleLight.play();
+    movVisibleLight.setPaused(true);
     
     movSpectrum.load("03_spectrum.mp4");
     movSpectrum.setLoopState(OF_LOOP_NONE);
@@ -171,7 +173,7 @@ void ofApp::setup(){
     fboVisibleLight.allocate(visFboSet);
     
     fboVisibleLight.begin();
-        ofClear(255, 255, 255, 0);
+        ofClear(0, 0, 0, 0);
     fboVisibleLight.end();
     
     ofEnableAlphaBlending();
@@ -214,6 +216,7 @@ void ofApp::update(){
     
     // UPDATE VIDEOS
     movVisibleLight.update();
+    
     fboVisibleLight.begin();
         movVisibleLight.draw(0, 0);
     fboVisibleLight.end();
@@ -268,7 +271,7 @@ void ofApp::update(){
         if (step == 4) {
             if (!movVisibleLight.isPlaying()) {
                 // play the loop of star
-                movVisibleLight.play();
+                //movVisibleLight.play();
             }
         }
         
@@ -351,7 +354,7 @@ void ofApp::draw(){
         ofSetColor(255,255,255,255);
         drawImage.draw(0, 0);
         starFbo.draw(0, 200);
-        //movVisibleLight.draw(0,0);
+        movVisibleLight.draw(0,0);
         
         //ofSetHexColor(0xFFFFFF);
         //fboVisibleLight.getTexture().draw(0, 0);
